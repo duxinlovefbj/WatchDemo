@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.heytap.wearable.support.widget.HeyRoundImageAntiAlias android:id="@id/iv_left_icon" android:layout_width="@dimen/hey_listitem_lefticon_height_width" android:layout_height="@dimen/hey_listitem_lefticon_height_width" android:layout_marginRight="@dimen/hey_listitem_left_icon_margin_right" android:scaleType="centerCrop" />
+    <TextView android:ellipsize="end" android:id="@id/tv_content" android:layout_width="0.0dp" android:layout_height="wrap_content" android:layout_weight="1.0" style="@style/HeySingleListItemTextStyle" />
+    <android.view.ViewStub android:id="@id/arrow_viewStub" android:layout="@layout/hey_arrow_viewstub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left" />
+</merge>

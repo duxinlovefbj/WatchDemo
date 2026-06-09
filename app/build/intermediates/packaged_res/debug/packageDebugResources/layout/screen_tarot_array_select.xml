@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 开启圆表滚轮支持与淡出效果 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="vertical"
+    android:background="#000000">
+
+    <LinearLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="60dp"> <!-- 底部留白，防止最底下的卡片被圆形屏幕切掉 -->
+
+        <!-- 随列表一起滚动的标题 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="36dp"
+            android:paddingBottom="12dp"
+            android:text="选择牌阵"
+            android:textColor="#888888"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+
+        <!-- 动态或者静态添加上面的 item_tarot_array.xml 视图 -->
+        
+    </LinearLayout>
+</ScrollView>

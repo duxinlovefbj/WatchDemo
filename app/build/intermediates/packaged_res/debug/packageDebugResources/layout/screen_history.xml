@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Pinned Tab Bar at the top -->
+    <LinearLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="24dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_tab_liuyao"
+            android:layout_width="64dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="六爻"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:focusable="true"
+            android:clickable="true"/>
+
+        <TextView
+            android:id="@+id/btn_tab_tarot"
+            android:layout_width="64dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="塔罗"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:focusable="true"
+            android:clickable="true"
+            android:layout_marginLeft="4dp"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="60dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="76dp"> <!-- Extra padding bottom to prevent clipping and indicators overlap -->
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Indicators at the bottom aligned with circular screen curvature -->
+    <LinearLayout
+        android:id="@+id/indicator_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <View
+            android:id="@+id/indicator_dot1"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginRight="8dp" />
+
+        <View
+            android:id="@+id/indicator_dot2"
+            android:layout_width="6dp"
+            android:layout_height="6dp" />
+    </LinearLayout>
+
+</FrameLayout>

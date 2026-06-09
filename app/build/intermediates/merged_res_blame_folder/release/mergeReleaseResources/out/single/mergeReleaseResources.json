@@ -1,0 +1,90 @@
+[
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_tarot_card_fallback_bg.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\tarot_card_fallback_bg.xml"
+    },
+    {
+        "merged": "com.example.watchdemo.app-release-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.example.watchdemo.app-main-5:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_tarot_card_border.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\tarot_card_border.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_screen_history.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\screen_history.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_ic_launcher_background.png.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\ic_launcher_background.png"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_ic_launcher_foreground.png.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_item_tarot_card_draw.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\item_tarot_card_draw.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_screen_settings.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\screen_settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_item_tarot_array.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\item_tarot_array.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_hey_base_item_bg.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\hey_base_item_bg.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_item_capsule_bg.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\item_capsule_bg.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_dialog_about.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\dialog_about.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_screen_tarot_array_select.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\screen_tarot_array_select.xml"
+    },
+    {
+        "merged": "com.example.watchdemo.app-release-4:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.example.watchdemo.app-main-5:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\mipmap-xxxhdpi\\ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.watchdemo.app-release-4:/drawable_ic_launcher_foreground.png.flat",
+        "source": "com.example.watchdemo.app-main-5:/drawable/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_circle_white_opacity.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\circle_white_opacity.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\drawable_tarot_draw_indicator.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\drawable\\tarot_draw_indicator.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\layout_screen_tarot_draw.xml.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\layout\\screen_tarot_draw.xml"
+    },
+    {
+        "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-release-4:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-5:\\mipmap-xxxhdpi\\ic_launcher.png"
+    }
+]
