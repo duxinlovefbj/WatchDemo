@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-26:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-26:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-26:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-26:12
+ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
 	package
 		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
 	android:versionName
@@ -21,8 +21,8 @@ ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:3:5-64
 	android:name
 		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:3:19-61
 application
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-24:19
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-24:19
+ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
+INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
 	android:extractNativeLibs
 		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
 	android:supportsRtl
@@ -53,6 +53,14 @@ category#android.intent.category.LAUNCHER
 ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:19:17-77
 	android:name
 		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:19:27-74
+activity#com.example.watchdemo.SubActivity
+ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:24:9-27:40
+	android:exported
+		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:27:13-37
+	android:theme
+		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:26:13-52
+	android:name
+		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:25:13-40
 uses-sdk
 INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml

@@ -194,9 +194,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
 
     @Override
     public void onSwipeLeft() {
-        if (activity.currentScreen == MainActivity.ScreenState.LIUYAO_DRAW) {
-            activity.switchScreen(MainActivity.ScreenState.INIT);
-        }
+        // Deleted LIUYAO_DRAW left swipe handler to prevent accidental exit
     }
 
     @Override

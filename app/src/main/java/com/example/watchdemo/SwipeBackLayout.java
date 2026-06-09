@@ -112,6 +112,7 @@ public class SwipeBackLayout extends FrameLayout {
                 startX = ev.getRawX();
                 startY = ev.getRawY();
                 isDragging = false;
+                setActivityDragging(false);
                 Log.d("SwipeBackLayout", "ACTION_DOWN: startX=" + startX + ", threshold=" + edgeThreshold);
                 if (startX > edgeThreshold) {
                     return false;
@@ -126,6 +127,7 @@ public class SwipeBackLayout extends FrameLayout {
                 Log.d("SwipeBackLayout", "ACTION_MOVE: dx=" + dx + ", dy=" + dy + ", touchSlop=" + touchSlop);
                 if (dx > touchSlop && dx > Math.abs(dy) * 1.2f) {
                     isDragging = true;
+                    setActivityDragging(true);
                     Log.d("SwipeBackLayout", "INTERCEPTED gesture! isDragging=true");
                     return true; // intercept touch
                 }
@@ -232,8 +234,15 @@ public class SwipeBackLayout extends FrameLayout {
                     }
                 }
                 isDragging = false;
+                setActivityDragging(false);
                 return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    private void setActivityDragging(boolean dragging) {
+        if (getContext() instanceof MainActivity) {
+            ((MainActivity) getContext()).isSwipeBackDragging = dragging;
+        }
     }
 }

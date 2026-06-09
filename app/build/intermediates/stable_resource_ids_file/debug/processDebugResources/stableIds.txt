@@ -1,3 +1,4 @@
+com.duxin.xingyao:style/AppTheme.NoSwipe = 0x7f050001
 com.duxin.xingyao:mipmap/ic_launcher_round = 0x7f040001
 com.duxin.xingyao:layout/screen_tarot_draw = 0x7f030006
 com.duxin.xingyao:layout/dialog_about = 0x7f030000

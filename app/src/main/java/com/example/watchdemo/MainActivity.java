@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     }
 
     ScreenState currentScreen = ScreenState.INIT;
+    public boolean isSwipeBackDragging = false;
     Vibrator vibrator;
     private android.os.HandlerThread vibrateThread;
     private android.os.Handler vibrateHandler;
@@ -203,7 +204,7 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
-        mRootLayout.setBackgroundColor(Color.BLACK);
+        mRootLayout.setBackgroundColor(this instanceof SubActivity ? Color.TRANSPARENT : Color.BLACK);
 
         // 安全区容器 (铺满全屏)
         mSafeContainer = new FrameLayout(this);
@@ -226,7 +227,28 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        loadHistory();
+        if (currentScreen == ScreenState.INIT && mInitScreenView != null) {
+            mInitScreenView.startAnimation();
+        }
+        renderScreen();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mInitScreenView != null) {
+            mInitScreenView.stopAnimation();
+        }
+    }
+
+    @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
+        if (isSwipeBackDragging) {
+            return true;
+        }
         if (event.getAction() == MotionEvent.ACTION_SCROLL) {
             float scrollDelta = event.getAxisValue(MotionEvent.ACTION_SCROLL);
             if (scrollDelta == 0) {
@@ -251,6 +273,13 @@ public class MainActivity extends Activity {
     }
 
     void switchScreen(ScreenState newState) {
+        if (!(this instanceof SubActivity) && newState != ScreenState.INIT) {
+            android.content.Intent intent = new android.content.Intent(this, SubActivity.class);
+            intent.putExtra("TARGET_SCREEN", newState);
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+            return;
+        }
         vibrateCustom(VibrationEffect.EFFECT_CLICK);
         previousScreen = currentScreen;
         currentScreen = newState;
@@ -299,7 +328,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        boolean keepInitUnderneath = (currentScreen == ScreenState.SETTINGS 
+        boolean keepInitUnderneath = !(this instanceof SubActivity) && (currentScreen == ScreenState.SETTINGS 
                 || currentScreen == ScreenState.HISTORY 
                 || currentScreen == ScreenState.LIUYAO_DRAW 
                 || currentScreen == ScreenState.TAROT_ARRAY_SELECT);
@@ -372,7 +401,12 @@ public class MainActivity extends Activity {
                     break;
             }
             if (screenView != null) {
-                if (keepInitUnderneath) {
+                screenView.setBackgroundColor(Color.BLACK);
+                boolean shouldWrap = (this instanceof SubActivity) && (currentScreen == ScreenState.SETTINGS 
+                        || currentScreen == ScreenState.HISTORY 
+                        || currentScreen == ScreenState.LIUYAO_DRAW 
+                        || currentScreen == ScreenState.TAROT_ARRAY_SELECT);
+                if (shouldWrap) {
                     SwipeBackLayout swipeBackLayout = new SwipeBackLayout(this);
                     swipeBackLayout.setLayoutParams(new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -396,6 +430,23 @@ public class MainActivity extends Activity {
                         ViewGroup.LayoutParams.MATCH_PARENT
                     ));
                     mSafeContainer.addView(screenView);
+                }
+            }
+        }
+        updateSystemGestureExclusion();
+    }
+
+    private void updateSystemGestureExclusion() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            if (mRootLayout != null) {
+                if (currentScreen == ScreenState.INIT) {
+                    mRootLayout.setSystemGestureExclusionRects(new java.util.ArrayList<android.graphics.Rect>());
+                } else {
+                    int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                    int exclusionWidth = (int) (60 * density);
+                    java.util.List<android.graphics.Rect> rects = new java.util.ArrayList<>();
+                    rects.add(new android.graphics.Rect(0, 0, exclusionWidth, screenHeight));
+                    mRootLayout.setSystemGestureExclusionRects(rects);
                 }
             }
         }
