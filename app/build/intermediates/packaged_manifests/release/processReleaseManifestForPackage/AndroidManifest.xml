@@ -29,6 +29,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.watchdemo.SubActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoSwipe" />
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ com.example.watchdemo.app-pngs-0 L:\Watch Demo\app\build\generated\res\pngs\rele
 com.example.watchdemo.app-resValues-1 L:\Watch Demo\app\build\generated\res\resValues\release
 com.example.watchdemo.app-packageReleaseResources-2 L:\Watch Demo\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
 com.example.watchdemo.app-packageReleaseResources-3 L:\Watch Demo\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
-com.example.watchdemo.app-release-4 L:\Watch Demo\app\build\intermediates\merged_res\release\mergeReleaseResources
-com.example.watchdemo.app-main-5 L:\Watch Demo\app\src\main\res
-com.example.watchdemo.app-release-6 L:\Watch Demo\app\src\release\res
+com.example.watchdemo.app-merged-not-compiled-resources-4 L:\Watch Demo\app\build\intermediates\merged-not-compiled-resources\release
+com.example.watchdemo.app-release-5 L:\Watch Demo\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.example.watchdemo.app-main-6 L:\Watch Demo\app\src\main\res
+com.example.watchdemo.app-release-7 L:\Watch Demo\app\src\release\res

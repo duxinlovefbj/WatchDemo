@@ -1,4 +1,4 @@
-#Tue Jun 09 10:44:28 CST 2026
-base.0=L\:\\Watch Demo\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
+#Wed Jun 10 10:59:58 CST 2026
+base.0=L\:\\Watch Demo\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
 renamed.0=classes.dex
 path.0=classes.dex

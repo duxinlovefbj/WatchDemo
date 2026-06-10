@@ -40,10 +40,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
             } else if (activity.settingsSelectedIndex == 1) {
                 activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
                 Toast.makeText(activity, "历史记录已清空", Toast.LENGTH_SHORT).show();
-                activity.liuyaoHistoryList.clear();
-                activity.tarotHistoryList.clear();
-                activity.saveHistory();
-                activity.renderScreen();
+                activity.clearAllHistory();
             } else if (activity.settingsSelectedIndex == 2) {
                 activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
                 final android.app.Dialog dialog = new android.app.Dialog(activity, android.R.style.Theme_Material_NoActionBar_Fullscreen);

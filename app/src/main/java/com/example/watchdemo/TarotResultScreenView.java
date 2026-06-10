@@ -53,12 +53,19 @@ public class TarotResultScreenView extends FrameLayout {
     // Crown scroll debounce throttle timestamp
     private long lastCrownTime = 0L;
 
+    // Cache objects to avoid allocations in drawBezelGlow
+    private final Paint mBezelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF mBezelOval = new RectF();
+
     public TarotResultScreenView(MainActivity activity) {
         super(activity);
         this.activity = activity;
         setLayoutParams(new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setWillNotDraw(false); // 启用 FrameLayout 的 onDraw 用以绘制霓虹圆环
+
+        mBezelPaint.setStyle(Paint.Style.STROKE);
+        mBezelPaint.setStrokeCap(Paint.Cap.ROUND);
 
         loadBitmaps();
         initLayouts();
@@ -720,31 +727,27 @@ public class TarotResultScreenView extends FrameLayout {
         }
 
         float r = radius - 6 * activity.density;
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setStyle(Paint.Style.STROKE);
-        p.setStrokeCap(Paint.Cap.ROUND); // 两段弧线端点进行圆角渲染
-
-        RectF oval = new RectF(cx - r, cy - r, cx + r, cy + r);
+        mBezelOval.set(cx - r, cy - r, cx + r, cy + r);
 
         // 1. 绘制上半部 2/3 的元素弧 (150° 到 390°)
-        p.setStrokeWidth(5f * activity.density);
-        p.setColor(elementColor);
-        p.setAlpha(60);
-        canvas.drawArc(oval, 150f, 240f, false, p);
+        mBezelPaint.setStrokeWidth(5f * activity.density);
+        mBezelPaint.setColor(elementColor);
+        mBezelPaint.setAlpha(60);
+        canvas.drawArc(mBezelOval, 150f, 240f, false, mBezelPaint);
 
-        p.setStrokeWidth(1.8f * activity.density);
-        p.setAlpha(255);
-        canvas.drawArc(oval, 150f, 240f, false, p);
+        mBezelPaint.setStrokeWidth(1.8f * activity.density);
+        mBezelPaint.setAlpha(255);
+        canvas.drawArc(mBezelOval, 150f, 240f, false, mBezelPaint);
 
         // 2. 绘制下半部 1/3 的属性弧 (30° 到 150°)
-        p.setStrokeWidth(5f * activity.density);
-        p.setColor(attributeColor);
-        p.setAlpha(60);
-        canvas.drawArc(oval, 30f, 120f, false, p);
+        mBezelPaint.setStrokeWidth(5f * activity.density);
+        mBezelPaint.setColor(attributeColor);
+        mBezelPaint.setAlpha(60);
+        canvas.drawArc(mBezelOval, 30f, 120f, false, mBezelPaint);
 
-        p.setStrokeWidth(1.8f * activity.density);
-        p.setAlpha(255);
-        canvas.drawArc(oval, 30f, 120f, false, p);
+        mBezelPaint.setStrokeWidth(1.8f * activity.density);
+        mBezelPaint.setAlpha(255);
+        canvas.drawArc(mBezelOval, 30f, 120f, false, mBezelPaint);
     }
 
     /**

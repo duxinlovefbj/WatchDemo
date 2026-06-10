@@ -17,7 +17,7 @@
 13-->L:\Watch Demo\app\src\main\AndroidManifest.xml:3:19-61
 14
 15    <application
-15-->L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-24:19
+15-->L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
 16        android:allowBackup="false"
 16-->L:\Watch Demo\app\src\main\AndroidManifest.xml:10:9-36
 17        android:extractNativeLibs="false"
@@ -48,6 +48,14 @@
 29-->L:\Watch Demo\app\src\main\AndroidManifest.xml:19:27-74
 30            </intent-filter>
 31        </activity>
-32    </application>
-33
-34</manifest>
+32        <activity
+32-->L:\Watch Demo\app\src\main\AndroidManifest.xml:24:9-27:40
+33            android:name="com.example.watchdemo.SubActivity"
+33-->L:\Watch Demo\app\src\main\AndroidManifest.xml:25:13-40
+34            android:exported="false"
+34-->L:\Watch Demo\app\src\main\AndroidManifest.xml:27:13-37
+35            android:theme="@style/AppTheme.NoSwipe" />
+35-->L:\Watch Demo\app\src\main\AndroidManifest.xml:26:13-52
+36    </application>
+37
+38</manifest>

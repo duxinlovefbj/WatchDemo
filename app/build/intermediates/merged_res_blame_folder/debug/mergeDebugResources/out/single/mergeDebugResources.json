@@ -8,16 +8,16 @@
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\layout\\item_tarot_card_draw.xml"
     },
     {
-        "merged": "com.example.watchdemo.app-debug-4:/mipmap-xxxhdpi_ic_launcher.png.flat",
-        "source": "com.example.watchdemo.app-main-6:/mipmap-xxxhdpi/ic_launcher.png"
-    },
-    {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\mipmap-xxxhdpi_ic_launcher.png.flat",
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\mipmap-xxxhdpi\\ic_launcher.png"
     },
     {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\layout_dialog_about.xml.flat",
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\layout\\dialog_about.xml"
+    },
+    {
+        "merged": "com.example.watchdemo.app-debug-4:/layout_dialog_about.xml.flat",
+        "source": "com.example.watchdemo.app-main-6:/layout/dialog_about.xml"
     },
     {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\layout_screen_tarot_array_select.xml.flat",
@@ -60,10 +60,6 @@
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\drawable\\tarot_card_fallback_bg.xml"
     },
     {
-        "merged": "com.example.watchdemo.app-debug-4:/drawable_ic_launcher_foreground.png.flat",
-        "source": "com.example.watchdemo.app-main-6:/drawable/ic_launcher_foreground.png"
-    },
-    {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\drawable_circle_white_opacity.xml.flat",
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\drawable\\circle_white_opacity.xml"
     },
@@ -78,10 +74,6 @@
     {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
         "source": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-main-6:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
-    },
-    {
-        "merged": "com.example.watchdemo.app-debug-4:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
-        "source": "com.example.watchdemo.app-main-6:/mipmap-xxxhdpi/ic_launcher_round.png"
     },
     {
         "merged": "C:\\Users\\duxin\\.gradle\\daemon\\8.9\\com.example.watchdemo.app-debug-4:\\drawable_hey_base_item_bg.xml.flat",

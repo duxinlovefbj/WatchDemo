@@ -6,20 +6,20 @@
                 {
                     "source": "L:\\Watch Demo\\app\\src\\main\\res\\values\\styles.xml",
                     "from": {
-                        "startLines": "1",
-                        "startColumns": "4",
-                        "startOffsets": "17",
-                        "endLines": "6",
-                        "endColumns": "12",
-                        "endOffsets": "338"
+                        "startLines": "1,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "17,409",
+                        "endLines": "7,15",
+                        "endColumns": "12,12",
+                        "endOffsets": "401,811"
                     },
                     "to": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endLines": "7",
-                        "endColumns": "12",
-                        "endOffsets": "371"
+                        "startLines": "2,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,438",
+                        "endLines": "8,15",
+                        "endColumns": "12,12",
+                        "endOffsets": "433,834"
                     }
                 }
             ]

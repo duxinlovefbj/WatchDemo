@@ -2,7 +2,6 @@ package com.example.watchdemo;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -20,7 +19,6 @@ public class SwipeBackLayout extends FrameLayout {
 
     public void setSwipeDisabled(boolean disabled) {
         this.isSwipeDisabled = disabled;
-        Log.d("SwipeBackLayout", "setSwipeDisabled: " + disabled);
     }
 
     public interface OnSwipeBackListener {
@@ -39,7 +37,6 @@ public class SwipeBackLayout extends FrameLayout {
 
     private void init(Context context) {
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        Log.d("SwipeBackLayout", "Initialized SwipeBackLayout. touchSlop = " + touchSlop);
     }
 
     public void setOnSwipeBackListener(OnSwipeBackListener listener) {
@@ -59,11 +56,9 @@ public class SwipeBackLayout extends FrameLayout {
                         public void getOutline(View view, android.graphics.Outline outline) {
                             int radius = view.getWidth() / 2;
                             outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
-                            Log.d("SwipeBackLayout", "contentView getOutline: width=" + view.getWidth() + " height=" + view.getHeight() + " radius=" + radius);
                         }
                     });
                     contentView.setClipToOutline(true);
-                    Log.d("SwipeBackLayout", "Enabled clipToOutline on contentView");
                 }
             }
         }
@@ -75,14 +70,10 @@ public class SwipeBackLayout extends FrameLayout {
                 public void getOutline(View view, android.graphics.Outline outline) {
                     int radius = view.getWidth() / 2;
                     outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
-                    Log.d("SwipeBackLayout", "parent getOutline: width=" + view.getWidth() + " height=" + view.getHeight() + " radius=" + radius);
                 }
             });
             setClipToOutline(true);
-            Log.d("SwipeBackLayout", "Enabled clipToOutline on parent SwipeBackLayout");
         }
-        
-        Log.d("SwipeBackLayout", "onLayout: getWidth() = " + getWidth() + ", contentView = " + contentView);
     }
 
     @Override
@@ -115,14 +106,12 @@ public class SwipeBackLayout extends FrameLayout {
         }
         float density = getResources().getDisplayMetrics().density;
         float edgeThreshold = getWidth() > 0 ? getWidth() * 0.5f : 150 * density;
-        Log.d("SwipeBackLayout", "onInterceptTouchEvent action=" + ev.getAction() + " x=" + ev.getRawX() + " y=" + ev.getRawY() + " edgeThreshold=" + edgeThreshold);
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 startX = ev.getRawX();
                 startY = ev.getRawY();
                 isDragging = false;
                 setActivityDragging(false);
-                Log.d("SwipeBackLayout", "ACTION_DOWN: startX=" + startX + ", threshold=" + edgeThreshold);
                 if (startX > edgeThreshold) {
                     return false;
                 }
@@ -133,11 +122,9 @@ public class SwipeBackLayout extends FrameLayout {
                 }
                 float dx = ev.getRawX() - startX;
                 float dy = ev.getRawY() - startY;
-                Log.d("SwipeBackLayout", "ACTION_MOVE: dx=" + dx + ", dy=" + dy + ", touchSlop=" + touchSlop);
                 if (dx > touchSlop && dx > Math.abs(dy) * 1.2f) {
                     isDragging = true;
                     setActivityDragging(true);
-                    Log.d("SwipeBackLayout", "INTERCEPTED gesture! isDragging=true");
                     return true; // intercept touch
                 }
                 break;
@@ -161,7 +148,6 @@ public class SwipeBackLayout extends FrameLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (isSwipeDisabled) return super.onTouchEvent(event);
-        Log.d("SwipeBackLayout", "onTouchEvent action=" + event.getAction() + " x=" + event.getRawX() + " isDragging=" + isDragging);
         if (contentView == null) return super.onTouchEvent(event);
 
         switch (event.getAction()) {
@@ -173,7 +159,6 @@ public class SwipeBackLayout extends FrameLayout {
             case MotionEvent.ACTION_MOVE:
                 float dx = event.getRawX() - startX;
                 if (dx < 0) dx = 0;
-                Log.d("SwipeBackLayout", "onTouchEvent ACTION_MOVE: dx=" + dx + ", maxDrag=" + maxDragDistance);
                 contentView.setTranslationX(dx);
                 // Reduce alpha slightly to make it fade out as it slides away
                 float progress = dx / maxDragDistance;
@@ -192,7 +177,6 @@ public class SwipeBackLayout extends FrameLayout {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 float finalDx = event.getRawX() - startX;
-                Log.d("SwipeBackLayout", "onTouchEvent ACTION_UP/CANCEL: finalDx=" + finalDx + ", threshold=" + (maxDragDistance * 0.35f));
                 if (finalDx > maxDragDistance * 0.35f) {
                     // Slide off screen to the right (matching Oppo hey_activity_anim.xml duration of 276ms)
                     long duration = 276;
@@ -204,7 +188,6 @@ public class SwipeBackLayout extends FrameLayout {
                             .withEndAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.d("SwipeBackLayout", "Swipe back animation finished, triggering listener");
                                     if (listener != null) {
                                         listener.onSwipeBack();
                                     }
@@ -256,3 +239,4 @@ public class SwipeBackLayout extends FrameLayout {
         }
     }
 }
+

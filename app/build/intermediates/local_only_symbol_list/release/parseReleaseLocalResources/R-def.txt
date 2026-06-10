@@ -37,3 +37,4 @@ layout screen_tarot_draw
 mipmap ic_launcher
 mipmap ic_launcher_round
 style AppTheme
+style AppTheme.NoSwipe

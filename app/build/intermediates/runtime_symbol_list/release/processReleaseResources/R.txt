@@ -35,3 +35,4 @@ int layout screen_tarot_draw 0x7f030006
 int mipmap ic_launcher 0x7f040000
 int mipmap ic_launcher_round 0x7f040001
 int style AppTheme 0x7f050000
+int style AppTheme_NoSwipe 0x7f050001

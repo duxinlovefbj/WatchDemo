@@ -233,67 +233,35 @@ public class HistoryScreenView extends FrameLayout {
             int scrollY = scrollView.getScrollY();
             int childCount = container.getChildCount();
 
-            float thresholdTop = 64 * activity.density; 
-            float minVisibleTop = -20 * activity.density; 
-
             float thresholdBottom = parentHeight - 64 * activity.density;
             float maxVisibleBottom = parentHeight + 20 * activity.density; 
 
             float[] scales = new float[childCount];
             float[] translationY = new float[childCount];
+            java.util.Arrays.fill(scales, 1.0f);
+            java.util.Arrays.fill(translationY, 0f);
 
-            int lastTopIndex = -1;
             int firstBottomIndex = childCount;
 
             for (int i = 0; i < childCount; i++) {
                 View child = container.getChildAt(i);
                 float childHeight = child.getHeight();
                 if (childHeight == 0) {
-                    scales[i] = 1.0f;
                     continue;
                 }
 
-                float relativeTop = child.getTop() - scrollY;
                 float relativeBottom = child.getBottom() - scrollY;
 
-                float scale = 1.0f;
-                float alpha = 1.0f;
-
-                if (relativeTop < thresholdTop) {
-                    float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
-                    ratio = Math.max(0f, Math.min(1f, ratio));
-                    scale = ratio * 0.15f + 0.85f; 
-                    alpha = ratio * 0.3f + 0.7f;   
-                    lastTopIndex = i;
-                } else if (relativeBottom > thresholdBottom) {
+                if (relativeBottom > thresholdBottom) {
                     float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
                     ratio = Math.max(0f, Math.min(1f, ratio));
-                    scale = ratio * 0.15f + 0.85f; 
-                    alpha = ratio * 0.3f + 0.7f;   
+                    scales[i] = ratio * 0.15f + 0.85f; 
+                    child.setAlpha(ratio * 0.3f + 0.7f);   
                     if (firstBottomIndex == childCount) {
                         firstBottomIndex = i;
                     }
-                }
-
-                scales[i] = scale;
-                child.setAlpha(alpha);
-            }
-
-            if (lastTopIndex >= 0) {
-                for (int j = lastTopIndex; j >= 0; j--) {
-                    View childJ = container.getChildAt(j);
-                    float hJ = childJ.getHeight();
-                    float tNext = 0f;
-                    float scaleNext = 1f;
-                    float hNext = 0f;
-
-                    if (j + 1 < childCount) {
-                        tNext = translationY[j + 1];
-                        scaleNext = scales[j + 1];
-                        hNext = container.getChildAt(j + 1).getHeight();
-                    }
-
-                    translationY[j] = tNext + hJ / 2f * (1f - scales[j]) + hNext / 2f * (1f - scaleNext);
+                } else {
+                    child.setAlpha(1.0f);
                 }
             }
 

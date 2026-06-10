@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
     public java.util.List<LiuyaoHistoryItem> liuyaoHistoryList = new java.util.ArrayList<>();
     public java.util.List<TarotHistoryItem> tarotHistoryList = new java.util.ArrayList<>();
     HistoryDbHelper dbHelper;
-    final java.util.concurrent.Executor dbExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+    static final java.util.concurrent.Executor dbExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     // 六爻起卦状态
     int liuyaoRollCount = 0;
@@ -194,7 +194,7 @@ public class MainActivity extends Activity {
         density = getResources().getDisplayMetrics().density;
 
         // Initialize state (load from Database)
-        dbHelper = new HistoryDbHelper(this);
+        dbHelper = HistoryDbHelper.getInstance(this);
         loadHistory();
 
         // 初始化自定义手势与表冠控制器
@@ -741,7 +741,7 @@ public class MainActivity extends Activity {
 
     public void loadHistory() {
         if (dbHelper == null) {
-            dbHelper = new HistoryDbHelper(this);
+            dbHelper = HistoryDbHelper.getInstance(this);
         }
         dbExecutor.execute(new Runnable() {
             @Override
@@ -996,6 +996,30 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {
                     android.util.Log.e("MainActivity", "Failed to delete tarot history", e);
                 }
+            }
+        });
+    }
+
+    public void clearAllHistory() {
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    android.database.sqlite.SQLiteDatabase db = dbHelper.getWritableDatabase();
+                    db.delete("liuyao_history", null, null);
+                    db.delete("tarot_history", null, null);
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to clear all history", e);
+                }
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        liuyaoHistoryList.clear();
+                        tarotHistoryList.clear();
+                        renderScreen();
+                    }
+                });
             }
         });
     }

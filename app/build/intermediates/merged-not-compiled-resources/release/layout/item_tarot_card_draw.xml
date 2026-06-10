@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="46dp"
+    android:layout_height="80dp">
+
+    <!-- 卡背图片 -->
+    <ImageView
+        android:id="@+id/iv_card_back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"/>
+
+    <!-- 兜底卡背背景（当没有图片时显示） -->
+    <View
+        android:id="@+id/v_card_fallback"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/tarot_card_fallback_bg"
+        android:visibility="gone"/>
+
+    <!-- 选中状态的高亮边框 -->
+    <View
+        android:id="@+id/v_card_border"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/tarot_card_border"/>
+</FrameLayout>

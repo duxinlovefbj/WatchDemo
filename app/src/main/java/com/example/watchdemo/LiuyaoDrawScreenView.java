@@ -11,13 +11,28 @@ public class LiuyaoDrawScreenView extends View {
     private final MainActivity activity;
     private float taijiAngle = 0f;
 
+    // Cache Paint and RectFs to avoid allocations per frame
+    private final Paint mPaint;
+    private final android.graphics.RectF mRingRect = new android.graphics.RectF();
+    private final android.graphics.RectF mShakeRect = new android.graphics.RectF();
+
+    private long lastTime = 0L;
+
     private final Runnable taijiRotateRunnable = new Runnable() {
         @Override
         public void run() {
-            if (activity.liuyaoRollCount == 0 && !activity.isCoinsRolling && !activity.isShowingCoinResult) {
-                taijiAngle = (taijiAngle + 1.2f) % 360f; // 慢慢旋转
-                invalidate();
-                postDelayed(this, 50);
+            if (isShown() && getWindowVisibility() == VISIBLE && 
+                activity.liuyaoRollCount == 0 && !activity.isCoinsRolling && !activity.isShowingCoinResult) {
+                long now = System.currentTimeMillis();
+                if (lastTime > 0) {
+                    long dt = now - lastTime;
+                    taijiAngle = (taijiAngle + 0.024f * dt) % 360f; // 24度每秒
+                }
+                lastTime = now;
+                postInvalidateOnAnimation();
+                postOnAnimation(this);
+            } else {
+                lastTime = 0L;
             }
         }
     };
@@ -27,22 +42,53 @@ public class LiuyaoDrawScreenView extends View {
         this.activity = activity;
         setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        post(taijiRotateRunnable);
+        removeCallbacks(taijiRotateRunnable);
+        lastTime = 0L;
+        postOnAnimation(taijiRotateRunnable);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         removeCallbacks(taijiRotateRunnable);
+        lastTime = 0L;
         super.onDetachedFromWindow();
     }
 
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        if (visibility == VISIBLE) {
+            removeCallbacks(taijiRotateRunnable);
+            lastTime = 0L;
+            postOnAnimation(taijiRotateRunnable);
+        } else {
+            removeCallbacks(taijiRotateRunnable);
+            lastTime = 0L;
+        }
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        if (visibility == VISIBLE) {
+            removeCallbacks(taijiRotateRunnable);
+            lastTime = 0L;
+            postOnAnimation(taijiRotateRunnable);
+        } else {
+            removeCallbacks(taijiRotateRunnable);
+            lastTime = 0L;
+        }
+    }
+
     public void updateText() {
-        invalidate();
+        postInvalidateOnAnimation();
     }
 
     @Override
@@ -55,8 +101,9 @@ public class LiuyaoDrawScreenView extends View {
         // 1. 背景绘制：纯黑色
         canvas.drawColor(Color.BLACK);
 
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setStrokeCap(Paint.Cap.ROUND);
+        mPaint.reset();
+        mPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        mPaint.setStrokeCap(Paint.Cap.ROUND);
         float cx = w / 2f;
         float cy = h / 2f;
         float R = Math.min(w, h) / 2f;
@@ -72,7 +119,7 @@ public class LiuyaoDrawScreenView extends View {
         // 3. 绘制 6 根同心装饰线圈
         for (int j = 0; j < 6; j++) {
             float r_ring = R_0 + j * dR;
-            android.graphics.RectF ringRect = new android.graphics.RectF(cx - r_ring, cy - r_ring, cx + r_ring, cy + r_ring);
+            mRingRect.set(cx - r_ring, cy - r_ring, cx + r_ring, cy + r_ring);
             
             // 每次抽爻由外向内转换：第一爻(i=0)改变最外圈(j=5)
             int castIdx = 5 - j;
@@ -101,24 +148,24 @@ public class LiuyaoDrawScreenView extends View {
                     ringColor = Color.parseColor("#C84B31");
                 }
 
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(1.5f * activity.density); // 爻线变换时粗细保持 1.5dp 不变
-                paint.setColor(ringColor); // 100%不透明
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(1.5f * activity.density); // 爻线变换时粗细保持 1.5dp 不变
+                mPaint.setColor(ringColor); // 100%不透明
 
                 // 绘制三等分弧线
                 for (int k = 0; k < 3; k++) {
                     float theta = baseAngles[k] + ringAngle;
                     if (isYang) {
-                        canvas.drawArc(ringRect, theta - halfSweep, halfSweep * 2f, false, paint);
+                        canvas.drawArc(mRingRect, theta - halfSweep, halfSweep * 2f, false, mPaint);
                     } else {
-                        canvas.drawArc(ringRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, paint);
-                        canvas.drawArc(ringRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, paint);
+                        canvas.drawArc(mRingRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, mPaint);
+                        canvas.drawArc(mRingRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, mPaint);
                     }
                 }
 
                 // 绘制装饰小圆点
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(ringColor);
+                mPaint.setStyle(Paint.Style.FILL);
+                mPaint.setColor(ringColor);
                 float dotRadius = 1.5f * activity.density;
 
                 for (int k = 0; k < 3; k++) {
@@ -126,61 +173,61 @@ public class LiuyaoDrawScreenView extends View {
                     if (isYang) {
                         // 阳爻：
                         // 1. 绘制 1/3 处的中心主圆点
-                        drawSingleDot(canvas, cx, cy, r_ring, theta, dotRadius, paint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta, dotRadius, mPaint);
                         if (isOld) {
                             // 老阳：在中心主圆点两侧额外多出两个新的装饰圆点
-                            drawSingleDot(canvas, cx, cy, r_ring, theta - 8f * ratio, dotRadius, paint);
-                            drawSingleDot(canvas, cx, cy, r_ring, theta + 8f * ratio, dotRadius, paint);
+                            drawSingleDot(canvas, cx, cy, r_ring, theta - 8f * ratio, dotRadius, mPaint);
+                            drawSingleDot(canvas, cx, cy, r_ring, theta + 8f * ratio, dotRadius, mPaint);
                         }
                     } else {
                         // 阴爻（银色）装饰点：
-                        drawSingleDot(canvas, cx, cy, r_ring, theta - halfSweep, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta - splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta + splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta + halfSweep, dotRadius, paint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta - halfSweep, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta - splitAngle / 2f, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta + splitAngle / 2f, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta + halfSweep, dotRadius, mPaint);
                         
                         if (isOld) {
                             // 老阴：在两端的装饰点之间多一个装饰点
                             float midAngle = (halfSweep + splitAngle / 2f) / 2f;
-                            drawSingleDot(canvas, cx, cy, r_ring, theta - midAngle, dotRadius, paint);
-                            drawSingleDot(canvas, cx, cy, r_ring, theta + midAngle, dotRadius, paint);
+                            drawSingleDot(canvas, cx, cy, r_ring, theta - midAngle, dotRadius, mPaint);
+                            drawSingleDot(canvas, cx, cy, r_ring, theta + midAngle, dotRadius, mPaint);
                         }
                     }
                 }
 
             } else if (castIdx == activity.liuyaoRollCount && activity.isShowingCoinResult) {
                 // 停止旋转后的 1.5s 显示投币结果阶段：分别渲染三个币的结果（金/银，实线/断开，以及修饰点）
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(1.5f * activity.density);
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(1.5f * activity.density);
 
                 for (int k = 0; k < 3; k++) {
                     boolean isGold = activity.currentCoinResults[k];
-                    paint.setColor(Color.parseColor(isGold ? "#F5E6CA" : "#8B7355")); // 依靠颜色显示单个币的结果
+                    mPaint.setColor(Color.parseColor(isGold ? "#F5E6CA" : "#8B7355")); // 依靠颜色显示单个币的结果
 
                     float theta = baseAngles[k] + ringAngle;
                     if (isGold) {
-                        canvas.drawArc(ringRect, theta - halfSweep, halfSweep * 2f, false, paint);
+                        canvas.drawArc(mRingRect, theta - halfSweep, halfSweep * 2f, false, mPaint);
                     } else {
-                        canvas.drawArc(ringRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, paint);
-                        canvas.drawArc(ringRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, paint);
+                        canvas.drawArc(mRingRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, mPaint);
+                        canvas.drawArc(mRingRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, mPaint);
                     }
                 }
 
                 // 绘制各币对应的点
-                paint.setStyle(Paint.Style.FILL);
+                mPaint.setStyle(Paint.Style.FILL);
                 float dotRadius = 1.5f * activity.density;
 
                 for (int k = 0; k < 3; k++) {
                     boolean isGold = activity.currentCoinResults[k];
-                    paint.setColor(Color.parseColor(isGold ? "#F5E6CA" : "#8B7355"));
+                    mPaint.setColor(Color.parseColor(isGold ? "#F5E6CA" : "#8B7355"));
                     float theta = baseAngles[k] + ringAngle;
                     if (isGold) {
-                        drawSingleDot(canvas, cx, cy, r_ring, theta, dotRadius, paint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta, dotRadius, mPaint);
                     } else {
-                        drawSingleDot(canvas, cx, cy, r_ring, theta - halfSweep, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta - splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta + splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_ring, theta + halfSweep, dotRadius, paint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta - halfSweep, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta - splitAngle / 2f, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta + splitAngle / 2f, dotRadius, mPaint);
+                        drawSingleDot(canvas, cx, cy, r_ring, theta + halfSweep, dotRadius, mPaint);
                     }
                 }
 
@@ -188,48 +235,35 @@ public class LiuyaoDrawScreenView extends View {
                 // 正在投掷/翻滚的当前圈层：三等分弧线各自随机闪烁金/银、实线/断开，模拟抛掷过程
                 for (int k = 0; k < 3; k++) {
                     boolean isGold = Math.random() > 0.5;
-                    paint.setStyle(Paint.Style.STROKE);
-                    paint.setStrokeWidth(1.2f * activity.density);
-                    paint.setColor(Color.parseColor(isGold ? "#80F5E6CA" : "#808B7355")); // 使用结果页的少阳/少阴色，带 50% 透明度
+                    mPaint.setStyle(Paint.Style.STROKE);
+                    mPaint.setStrokeWidth(1.2f * activity.density);
+                    mPaint.setColor(Color.parseColor(isGold ? "#80F5E6CA" : "#808B7355")); // 使用结果页的少阳/少阴色，带 50% 透明度
 
                     float theta = baseAngles[k] + ringAngle;
                     // 加入少许抖动以增强物理动态感
                     float shakeOffset = (float)(Math.random() - 0.5) * 1.5f * activity.density;
                     float r_shake = r_ring + shakeOffset;
-                    android.graphics.RectF shakeRect = new android.graphics.RectF(cx - r_shake, cy - r_shake, cx + r_shake, cy + r_shake);
+                    mShakeRect.set(cx - r_shake, cy - r_shake, cx + r_shake, cy + r_shake);
 
                     if (isGold) {
-                        canvas.drawArc(shakeRect, theta - halfSweep, halfSweep * 2f, false, paint);
+                        canvas.drawArc(mShakeRect, theta - halfSweep, halfSweep * 2f, false, mPaint);
                     } else {
-                        canvas.drawArc(shakeRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, paint);
-                        canvas.drawArc(shakeRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, paint);
-                    }
-                    
-                    // 绘制闪烁中的点
-                    paint.setStyle(Paint.Style.FILL);
-                    paint.setColor(Color.parseColor(isGold ? "#F5E6CA" : "#8B7355"));
-                    float dotRadius = 1.2f * activity.density;
-                    if (isGold) {
-                        drawSingleDot(canvas, cx, cy, r_shake, theta, dotRadius, paint);
-                    } else {
-                        drawSingleDot(canvas, cx, cy, r_shake, theta - halfSweep, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_shake, theta - splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_shake, theta + splitAngle / 2f, dotRadius, paint);
-                        drawSingleDot(canvas, cx, cy, r_shake, theta + halfSweep, dotRadius, paint);
+                        canvas.drawArc(mShakeRect, theta - halfSweep, halfSweep - splitAngle / 2f, false, mPaint);
+                        canvas.drawArc(mShakeRect, theta + splitAngle / 2f, halfSweep - splitAngle / 2f, false, mPaint);
                     }
                 }
             } else {
                 // 未起卦的装饰线圈（一开始是完全连在一起的整圈圆）
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(1.0f * activity.density);
-                paint.setColor(Color.parseColor("#25C9A96E")); // 25% 透明暗金色 (C9A96E)
-                canvas.drawCircle(cx, cy, r_ring, paint);
+                mPaint.setStyle(Paint.Style.STROKE);
+                mPaint.setStrokeWidth(1.0f * activity.density);
+                mPaint.setColor(Color.parseColor("#25C9A96E")); // 25% 透明暗金色 (C9A96E)
+                canvas.drawCircle(cx, cy, r_ring, mPaint);
                 
                 // 绘制未起卦的 3 个主顶点圆点
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(Color.parseColor("#45C9A96E")); // 45% 透明暗金色 (C9A96E)
+                mPaint.setStyle(Paint.Style.FILL);
+                mPaint.setColor(Color.parseColor("#45C9A96E")); // 45% 透明暗金色 (C9A96E)
                 for (float angle : baseAngles) {
-                    drawSingleDot(canvas, cx, cy, r_ring, angle + ringAngle, 1.2f * activity.density, paint);
+                    drawSingleDot(canvas, cx, cy, r_ring, angle + ringAngle, 1.2f * activity.density, mPaint);
                 }
             }
         }
@@ -265,7 +299,7 @@ public class LiuyaoDrawScreenView extends View {
                 }
             }
         } else {
-            // 已有掷爻数据，只显示六爻卦象
+            // 已有掷爻 data，只显示六爻卦象
             showTaiji = false;
             showHexagram = true;
             hexagramAlpha = 1.0f;
@@ -282,40 +316,40 @@ public class LiuyaoDrawScreenView extends View {
             int alphaVal = Math.round(taijiAlpha * 255);
 
             // 绘制阳半圆 (金色F5E6CA)
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.parseColor("#F5E6CA"));
-            paint.setAlpha(alphaVal);
-            canvas.drawArc(-taijiR, -taijiR, taijiR, taijiR, -90f, 180f, true, paint);
+            mPaint.setStyle(Paint.Style.FILL);
+            mPaint.setColor(Color.parseColor("#F5E6CA"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawArc(-taijiR, -taijiR, taijiR, taijiR, -90f, 180f, true, mPaint);
 
             // 绘制阴半圆 (深紫灰2D2D44)
-            paint.setColor(Color.parseColor("#2D2D44"));
-            paint.setAlpha(alphaVal);
-            canvas.drawArc(-taijiR, -taijiR, taijiR, taijiR, 90f, 180f, true, paint);
+            mPaint.setColor(Color.parseColor("#2D2D44"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawArc(-taijiR, -taijiR, taijiR, taijiR, 90f, 180f, true, mPaint);
 
             // 绘制鱼头圆
-            paint.setColor(Color.parseColor("#F5E6CA"));
-            paint.setAlpha(alphaVal);
-            canvas.drawCircle(0, -taijiR / 2f, taijiR / 2f, paint);
+            mPaint.setColor(Color.parseColor("#F5E6CA"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawCircle(0, -taijiR / 2f, taijiR / 2f, mPaint);
 
-            paint.setColor(Color.parseColor("#2D2D44"));
-            paint.setAlpha(alphaVal);
-            canvas.drawCircle(0, taijiR / 2f, taijiR / 2f, paint);
+            mPaint.setColor(Color.parseColor("#2D2D44"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawCircle(0, taijiR / 2f, taijiR / 2f, mPaint);
 
             // 绘制鱼眼
-            paint.setColor(Color.parseColor("#2D2D44"));
-            paint.setAlpha(alphaVal);
-            canvas.drawCircle(0, -taijiR / 2f, taijiR / 6f, paint);
+            mPaint.setColor(Color.parseColor("#2D2D44"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawCircle(0, -taijiR / 2f, taijiR / 6f, mPaint);
 
-            paint.setColor(Color.parseColor("#F5E6CA"));
-            paint.setAlpha(alphaVal);
-            canvas.drawCircle(0, taijiR / 2f, taijiR / 6f, paint);
+            mPaint.setColor(Color.parseColor("#F5E6CA"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawCircle(0, taijiR / 2f, taijiR / 6f, mPaint);
 
             // 绘制细金边圈 (C9A96E)
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(1.0f * activity.density);
-            paint.setColor(Color.parseColor("#C9A96E"));
-            paint.setAlpha(alphaVal);
-            canvas.drawCircle(0, 0, taijiR, paint);
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(1.0f * activity.density);
+            mPaint.setColor(Color.parseColor("#C9A96E"));
+            mPaint.setAlpha(alphaVal);
+            canvas.drawCircle(0, 0, taijiR, mPaint);
 
             canvas.restore();
         }
@@ -333,7 +367,7 @@ public class LiuyaoDrawScreenView extends View {
             canvas.translate(cx, cy);
             canvas.scale(hexagramScale, hexagramScale);
 
-            paint.setStyle(Paint.Style.FILL);
+            mPaint.setStyle(Paint.Style.FILL);
 
             for (int i = 0; i < 6; i++) {
                 float lineY = (H / 2f) - i * (thickness + gap) - (thickness / 2f);
@@ -354,29 +388,29 @@ public class LiuyaoDrawScreenView extends View {
                     } else {
                         lineColor = Color.parseColor("#C84B31");
                     }
-                    paint.setColor(lineColor);
+                    mPaint.setColor(lineColor);
 
                     if (isOld) {
                         // 绘制很薄一层半透明外侧辉光 (先于实心线绘制，保持核心边缘清晰)
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(3.0f * activity.density);
-                        paint.setAlpha(Math.round(alphaVal * 0.25f));
+                        mPaint.setStyle(Paint.Style.STROKE);
+                        mPaint.setStrokeWidth(3.0f * activity.density);
+                        mPaint.setAlpha(Math.round(alphaVal * 0.25f));
                         if (isYang) {
-                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                         } else {
-                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, paint);
-                            canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, mPaint);
+                            canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                         }
                     }
 
                     // 绘制实心爻线
-                    paint.setStyle(Paint.Style.FILL);
-                    paint.setAlpha(alphaVal);
+                    mPaint.setStyle(Paint.Style.FILL);
+                    mPaint.setAlpha(alphaVal);
                     if (isYang) {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     } else {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, paint);
-                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, mPaint);
+                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     }
                 } else if (i == activity.liuyaoRollCount && activity.isShowingCoinResult) {
                     // 正在展示结果 of the current cast line
@@ -394,47 +428,47 @@ public class LiuyaoDrawScreenView extends View {
                     } else {
                         lineColor = Color.parseColor("#C84B31");
                     }
-                    paint.setColor(lineColor);
+                    mPaint.setColor(lineColor);
 
                     if (isOld) {
                         // 绘制很薄一层半透明外侧辉光
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(3.0f * activity.density);
-                        paint.setAlpha(Math.round(alphaVal * 0.25f));
+                        mPaint.setStyle(Paint.Style.STROKE);
+                        mPaint.setStrokeWidth(3.0f * activity.density);
+                        mPaint.setAlpha(Math.round(alphaVal * 0.25f));
                         if (isYang) {
-                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                         } else {
-                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, paint);
-                            canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                            canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, mPaint);
+                            canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                         }
                     }
 
                     // 绘制实心爻线
-                    paint.setStyle(Paint.Style.FILL);
-                    paint.setAlpha(alphaVal);
+                    mPaint.setStyle(Paint.Style.FILL);
+                    mPaint.setAlpha(alphaVal);
                     if (isYang) {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     } else {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, paint);
-                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, mPaint);
+                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     }
                 } else if (i == activity.liuyaoRollCount && activity.isCoinsRolling) {
                     // 滚动中的当前爻线：随机闪烁
                     boolean flashYang = Math.random() > 0.5;
-                    paint.setColor(Color.parseColor(flashYang ? "#80F5E6CA" : "#808B7355"));
-                    paint.setAlpha(Math.round(hexagramAlpha * 128));
+                    mPaint.setColor(Color.parseColor(flashYang ? "#80F5E6CA" : "#808B7355"));
+                    mPaint.setAlpha(Math.round(hexagramAlpha * 128));
 
                     if (flashYang) {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     } else {
-                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, paint);
-                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                        canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, -yinGap / 2f, lineY + thickness / 2f, mPaint);
+                        canvas.drawRect(yinGap / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                     }
                 } else {
                     // 未开始的爻位：画极其淡的灰色占位符线
-                    paint.setColor(Color.parseColor("#15FFFFFF"));
-                    paint.setAlpha(Math.round(hexagramAlpha * 21));
-                    canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, paint);
+                    mPaint.setColor(Color.parseColor("#15FFFFFF"));
+                    mPaint.setAlpha(Math.round(hexagramAlpha * 21));
+                    canvas.drawRect(-lineW / 2f, lineY - thickness / 2f, lineW / 2f, lineY + thickness / 2f, mPaint);
                 }
             }
             canvas.restore();

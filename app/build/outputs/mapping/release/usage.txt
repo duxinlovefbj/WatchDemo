@@ -1,0 +1,138 @@
+com.example.watchdemo.HistoryDbHelper:
+    private static final java.lang.String DATABASE_NAME
+    private static final int DATABASE_VERSION
+com.example.watchdemo.InitScreenView:
+    private static final int STATE_IDLE
+    private static final int STATE_SWIPE_LEFT_ANIM
+    private static final int STATE_SWIPE_RIGHT_ANIM
+com.example.watchdemo.LiuyaoCalculator:
+    public void <init>()
+com.example.watchdemo.LiuyaoYaoCiData:
+    public void <init>()
+com.example.watchdemo.MainActivity:
+    public static int generateSingleYao(int)
+    java.lang.String getLiuyaoResultText(int)
+com.example.watchdemo.R$drawable
+com.example.watchdemo.R$id:
+    public static int indicator_layout
+    private void <init>()
+com.example.watchdemo.R$layout:
+    private void <init>()
+com.example.watchdemo.R$mipmap
+com.example.watchdemo.R$style
+com.example.watchdemo.R
+com.example.watchdemo.SwipeBackLayout:
+    public void <init>(android.content.Context,android.util.AttributeSet)
+com.example.watchdemo.TarotDeck:
+    public void <init>()
+com.example.watchdemo.WatchGestureDetector:
+    private static final int LONG_PRESS_TIMEOUT_MS
+    private static final int SWIPE_THRESHOLD_DP
+com.example.watchdemo.HistoryScreenView$1:
+    public final synthetic com.example.watchdemo.HistoryScreenView this$0
+com.example.watchdemo.HistoryScreenView$2:
+    public final synthetic com.example.watchdemo.HistoryScreenView this$0
+com.example.watchdemo.HistoryScreenView$3:
+    public final synthetic com.example.watchdemo.HistoryScreenView this$0
+com.example.watchdemo.HistoryScreenView:
+    public static void applyEdgeEffects()
+    public static void deleteHistoryItemWithAnimation()
+com.example.watchdemo.InitScreenView:
+    public static void drawTitle()
+    public final void startTransition(boolean)
+    public static void stopAnimation()
+    public static void transitionComplete()
+com.example.watchdemo.LiuyaoCalculator$HexagramDetails:
+    public java.lang.String palaceName
+com.example.watchdemo.LiuyaoCalculator$LunarInfo:
+    public java.lang.String shengXiao
+com.example.watchdemo.LiuyaoCalculator$PalaceResult
+com.example.watchdemo.LiuyaoDrawScreenView:
+    public static void updateText()
+com.example.watchdemo.LiuyaoResultScreenView:
+    public static void drawDiscPlaceholderPage()
+    public static void drawMainResultPage()
+    public static void drawYaoPlaceholderPage()
+    public static float shortestAngleDiff(float,float)
+    public final void triggerRotationAnimation()
+com.example.watchdemo.MainActivity$13
+com.example.watchdemo.MainActivity$2:
+    public final void onSwipeBack()
+com.example.watchdemo.MainActivity$VibrateRunnable:
+    public static void setEffectId()
+com.example.watchdemo.MainActivity:
+    public static final java.lang.String[] TAROT_MEANINGS
+    public int coinAnimFrame
+    public int lastDrawnCardId
+    public long lastDrawnTime
+    public static void addLiuyaoHistory()
+    public static void clearAllHistory()
+    public static void commitLiuyaoYao()
+    public static void deleteLiuyaoHistory()
+    public static void deleteTarotHistory()
+    public static void executeDrawCardAction()
+    public static void initLinearMotorReflection()
+    public final void loadHistory()
+    public static void updateSystemGestureExclusion()
+com.example.watchdemo.R$id
+com.example.watchdemo.R$layout
+com.example.watchdemo.SettingsScreenView$1:
+    public final synthetic com.example.watchdemo.SettingsScreenView this$0
+com.example.watchdemo.SettingsScreenView:
+    public static void applyEdgeEffects()
+com.example.watchdemo.SwipeBackLayout$1:
+    public final synthetic com.example.watchdemo.SwipeBackLayout this$0
+com.example.watchdemo.SwipeBackLayout$2:
+    public final synthetic com.example.watchdemo.SwipeBackLayout this$0
+com.example.watchdemo.SwipeBackLayout$OnSwipeBackListener:
+    public abstract void onSwipeBack()
+com.example.watchdemo.SwipeBackLayout:
+    public boolean isDragging
+    public static void init()
+com.example.watchdemo.TarotArraySelectScreenView$1:
+    public final synthetic com.example.watchdemo.TarotArraySelectScreenView this$0
+com.example.watchdemo.TarotArraySelectScreenView:
+    public static void applyEdgeEffects()
+com.example.watchdemo.TarotDeck$TarotCard:
+    public final java.lang.String name
+    public final java.lang.String suit
+com.example.watchdemo.TarotDrawScreenView:
+    public static void animateGlow()
+    public static void applyBordersDrawing()
+    public static void applyBordersStable()
+    public static float[] computeStableTNoLoop()
+    public static void drawBezelGlow()
+    public static void handleLongPress()
+    public static boolean isAnimating()
+    public static void startDrawAnimation()
+    public final void updateSwipeBackState()
+com.example.watchdemo.TarotResultScreenView:
+    public static void animateCancelDismiss()
+    public static void animateDismiss()
+    public static void applyDetailTransition()
+    public static void drawBezelGlow()
+    public static int getCardIndexAt()
+    public static void initLayouts()
+    public static void layoutDetail()
+    public static void layoutSpread()
+    public static void runEntryTransition()
+    public static void toggleDetailState()
+    public static void updateDetailCard()
+com.example.watchdemo.WatchCrownHandler$CrownListener
+com.example.watchdemo.WatchCrownHandler:
+    public boolean useSpeedAdaptiveDeadzone
+    public static void onScroll()
+    public static void setCooldownMs()
+    public static void setThreshold()
+    public static void setUseSpeedAdaptiveDeadzone()
+com.example.watchdemo.WatchGestureDetector$GestureListener
+com.example.watchdemo.WatchInteractionController$1:
+    public final synthetic com.example.watchdemo.WatchInteractionController this$0
+com.example.watchdemo.WatchInteractionController:
+    public static void onLongPress()
+    public static void onStepClockwise()
+    public static void onStepCounterClockwise()
+    public static void onSwipeDown()
+    public static void onSwipeLeft()
+    public static void onSwipeRight()
+    public static void onSwipeUp()
