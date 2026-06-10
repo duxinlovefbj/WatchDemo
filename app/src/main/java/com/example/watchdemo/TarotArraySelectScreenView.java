@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 public class TarotArraySelectScreenView extends FrameLayout {
     private final MainActivity activity;
+    private boolean isApplyingEffects = false;
 
     private static final String[] ARRAY_NAMES = {
             "自由抽牌", "圣三角牌阵", "六芒星牌阵", "时间之箭牌阵", "凯尔特十字牌阵",
@@ -93,7 +94,9 @@ public class TarotArraySelectScreenView extends FrameLayout {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                applyEdgeEffects(scrollView, container);
+                if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
+                    applyEdgeEffects(scrollView, container);
+                }
             }
         });
     }
@@ -104,108 +107,114 @@ public class TarotArraySelectScreenView extends FrameLayout {
      * 采用累积偏移算法，确保在缩放过程中相邻卡片之间的物理间隔始终保持不变。
      */
     private void applyEdgeEffects(ScrollView scrollView, LinearLayout container) {
-        int parentHeight = scrollView.getHeight();
-        if (parentHeight == 0) return;
+        if (isApplyingEffects) return;
+        isApplyingEffects = true;
+        try {
+            int parentHeight = scrollView.getHeight();
+            if (parentHeight == 0) return;
 
-        int scrollY = scrollView.getScrollY();
-        int childCount = container.getChildCount();
+            int scrollY = scrollView.getScrollY();
+            int childCount = container.getChildCount();
 
-        // 设定圆盘顶部和底部触发渐隐缩放动画的“活跃区域值”（一般为 60dp - 70dp）
-        float thresholdTop = 64 * activity.density; 
-        float minVisibleTop = -20 * activity.density; // 完全滑出边缘的极值
+            // 设定圆盘顶部和底部触发渐隐缩放动画的“活跃区域值”（一般为 60dp - 70dp）
+            float thresholdTop = 64 * activity.density; 
+            float minVisibleTop = -20 * activity.density; // 完全滑出边缘的极值
 
-        float thresholdBottom = parentHeight - 64 * activity.density;
-        float maxVisibleBottom = parentHeight + 20 * activity.density; // 完全滑出底部的极值
+            float thresholdBottom = parentHeight - 64 * activity.density;
+            float maxVisibleBottom = parentHeight + 20 * activity.density; // 完全滑出底部的极值
 
-        float[] scales = new float[childCount];
-        float[] translationY = new float[childCount];
+            float[] scales = new float[childCount];
+            float[] translationY = new float[childCount];
 
-        int lastTopIndex = -1;
-        int firstBottomIndex = childCount;
+            int lastTopIndex = -1;
+            int firstBottomIndex = childCount;
 
-        // 第一遍扫描：计算所有子 View 的 scale 和 alpha，并记录顶部/底部缩放边界
-        for (int i = 0; i < childCount; i++) {
-            View child = container.getChildAt(i);
-            float childHeight = child.getHeight();
-            if (childHeight == 0) {
-                scales[i] = 1.0f;
-                continue;
+            // 第一遍扫描：计算所有子 View 的 scale 和 alpha，并记录顶部/底部缩放边界
+            for (int i = 0; i < childCount; i++) {
+                View child = container.getChildAt(i);
+                float childHeight = child.getHeight();
+                if (childHeight == 0) {
+                    scales[i] = 1.0f;
+                    continue;
+                }
+
+                // 计算卡片相对于 ScrollView 视口顶部的相对 top 和 bottom 坐标
+                float relativeTop = child.getTop() - scrollY;
+                float relativeBottom = child.getBottom() - scrollY;
+
+                float scale = 1.0f;
+                float alpha = 1.0f;
+
+                if (relativeTop < thresholdTop) {
+                    // 1. 顶部边缘滑出（提前在进入顶部 64dp 窄边区域时触发）
+                    float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
+                    ratio = Math.max(0f, Math.min(1f, ratio));
+                    scale = ratio * 0.15f + 0.85f; // Scale: 1.0 -> 0.85
+                    alpha = ratio * 0.3f + 0.7f;   // Alpha: 1.0 -> 0.7
+                    lastTopIndex = i;
+                } else if (relativeBottom > thresholdBottom) {
+                    // 2. 底部边缘滑出（提前在进入底部 64dp 窄边区域时触发）
+                    float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
+                    ratio = Math.max(0f, Math.min(1f, ratio));
+                    scale = ratio * 0.15f + 0.85f; // Scale: 1.0 -> 0.85
+                    alpha = ratio * 0.3f + 0.7f;   // Alpha: 1.0 -> 0.7
+                    if (firstBottomIndex == childCount) {
+                        firstBottomIndex = i;
+                    }
+                }
+
+                scales[i] = scale;
+                child.setAlpha(alpha);
             }
 
-            // 计算卡片相对于 ScrollView 视口顶部的相对 top 和 bottom 坐标
-            float relativeTop = child.getTop() - scrollY;
-            float relativeBottom = child.getBottom() - scrollY;
+            // 第二遍扫描：从无缩放区域往两端方向累积计算每个 View 的 translationY 补偿量，使相邻卡片之间的物理间隔始终保持恒定。
+            // 1. 顶部缩放区域：自下而上累积
+            if (lastTopIndex >= 0) {
+                for (int j = lastTopIndex; j >= 0; j--) {
+                    View childJ = container.getChildAt(j);
+                    float hJ = childJ.getHeight();
+                    float tNext = 0f;
+                    float scaleNext = 1f;
+                    float hNext = 0f;
 
-            float scale = 1.0f;
-            float alpha = 1.0f;
+                    if (j + 1 < childCount) {
+                        tNext = translationY[j + 1];
+                        scaleNext = scales[j + 1];
+                        hNext = container.getChildAt(j + 1).getHeight();
+                    }
 
-            if (relativeTop < thresholdTop) {
-                // 1. 顶部边缘滑出（提前在进入顶部 64dp 窄边区域时触发）
-                float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
-                ratio = Math.max(0f, Math.min(1f, ratio));
-                scale = ratio * 0.15f + 0.85f; // Scale: 1.0 -> 0.85
-                alpha = ratio * 0.3f + 0.7f;   // Alpha: 1.0 -> 0.7
-                lastTopIndex = i;
-            } else if (relativeBottom > thresholdBottom) {
-                // 2. 底部边缘滑出（提前在进入底部 64dp 窄边区域时触发）
-                float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
-                ratio = Math.max(0f, Math.min(1f, ratio));
-                scale = ratio * 0.15f + 0.85f; // Scale: 1.0 -> 0.85
-                alpha = ratio * 0.3f + 0.7f;   // Alpha: 1.0 -> 0.7
-                if (firstBottomIndex == childCount) {
-                    firstBottomIndex = i;
+                    translationY[j] = tNext + hJ / 2f * (1f - scales[j]) + hNext / 2f * (1f - scaleNext);
                 }
             }
 
-            scales[i] = scale;
-            child.setAlpha(alpha);
-        }
+            // 2. 底部缩放区域：自上而下累积
+            if (firstBottomIndex < childCount) {
+                for (int j = firstBottomIndex; j < childCount; j++) {
+                    View childJ = container.getChildAt(j);
+                    float hJ = childJ.getHeight();
+                    float tPrev = 0f;
+                    float scalePrev = 1f;
+                    float hPrev = 0f;
 
-        // 第二遍扫描：从无缩放区域往两端方向累积计算每个 View 的 translationY 补偿量，使相邻卡片之间的物理间隔始终保持恒定。
-        // 1. 顶部缩放区域：自下而上累积
-        if (lastTopIndex >= 0) {
-            for (int j = lastTopIndex; j >= 0; j--) {
-                View childJ = container.getChildAt(j);
-                float hJ = childJ.getHeight();
-                float tNext = 0f;
-                float scaleNext = 1f;
-                float hNext = 0f;
+                    if (j - 1 >= 0) {
+                        tPrev = translationY[j - 1];
+                        scalePrev = scales[j - 1];
+                        hPrev = container.getChildAt(j - 1).getHeight();
+                    }
 
-                if (j + 1 < childCount) {
-                    tNext = translationY[j + 1];
-                    scaleNext = scales[j + 1];
-                    hNext = container.getChildAt(j + 1).getHeight();
+                    translationY[j] = tPrev - hJ / 2f * (1f - scales[j]) - hPrev / 2f * (1f - scalePrev);
                 }
-
-                translationY[j] = tNext + hJ / 2f * (1f - scales[j]) + hNext / 2f * (1f - scaleNext);
             }
-        }
 
-        // 2. 底部缩放区域：自上而下累积
-        if (firstBottomIndex < childCount) {
-            for (int j = firstBottomIndex; j < childCount; j++) {
-                View childJ = container.getChildAt(j);
-                float hJ = childJ.getHeight();
-                float tPrev = 0f;
-                float scalePrev = 1f;
-                float hPrev = 0f;
-
-                if (j - 1 >= 0) {
-                    tPrev = translationY[j - 1];
-                    scalePrev = scales[j - 1];
-                    hPrev = container.getChildAt(j - 1).getHeight();
-                }
-
-                translationY[j] = tPrev - hJ / 2f * (1f - scales[j]) - hPrev / 2f * (1f - scalePrev);
+            // 应用变换
+            for (int i = 0; i < childCount; i++) {
+                View child = container.getChildAt(i);
+                child.setScaleX(scales[i]);
+                child.setScaleY(scales[i]);
+                child.setTranslationY(translationY[i]);
             }
-        }
-
-        // 应用变换
-        for (int i = 0; i < childCount; i++) {
-            View child = container.getChildAt(i);
-            child.setScaleX(scales[i]);
-            child.setScaleY(scales[i]);
-            child.setTranslationY(translationY[i]);
+        } finally {
+            isApplyingEffects = false;
         }
     }
 

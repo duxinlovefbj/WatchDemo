@@ -86,6 +86,13 @@ public class TarotResultScreenView extends FrameLayout {
         }
     }
 
+    private void updateSwipeBackState() {
+        if (getParent() instanceof SwipeBackLayout) {
+            boolean disableSwipe = (activity.tarotResultLayer == 2);
+            ((SwipeBackLayout) getParent()).setSwipeDisabled(disableSwipe);
+        }
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -95,6 +102,7 @@ public class TarotResultScreenView extends FrameLayout {
         if (w > 0 && h > 0) {
             setupLayouts(w, h);
         }
+        updateSwipeBackState();
     }
 
     private void initLayouts() {
@@ -236,6 +244,7 @@ public class TarotResultScreenView extends FrameLayout {
                 dimOverlay.setVisibility(View.GONE);
             }
         }
+        updateSwipeBackState();
     }
 
     /**
@@ -626,6 +635,7 @@ public class TarotResultScreenView extends FrameLayout {
 
                 // 局部渲染更新，规避重绘 activity.renderScreen() 导致的卡顿
                 updateSpreadBorders();
+                updateSwipeBackState();
             }
         });
         dismissAnimator.start();

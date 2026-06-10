@@ -23,6 +23,9 @@ import java.io.InputStream;
 public class TarotDrawScreenView extends FrameLayout {
     private final MainActivity activity;
     private Bitmap cardBackBitmap = null;
+    private boolean isFastSlideUnlocked = false;
+    private float glowFraction = 0f;
+    private ValueAnimator glowAnimator = null;
 
     private FrameLayout cardContainer;
     private TextView tvCounter;
@@ -57,6 +60,8 @@ public class TarotDrawScreenView extends FrameLayout {
     public TarotDrawScreenView(MainActivity activity) {
         super(activity);
         this.activity = activity;
+        this.isFastSlideUnlocked = activity.isTarotFastSlideUnlocked;
+        this.glowFraction = this.isFastSlideUnlocked ? 1f : 0f;
         setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -107,6 +112,7 @@ public class TarotDrawScreenView extends FrameLayout {
         }
         // 稳定状态：slot 4（中心）金色高亮，其余灰色；滚动过程中此状态不变，无需逐帧更新
         applyBordersStable();
+        setWillNotDraw(false);
     }
 
     @Override
@@ -125,6 +131,7 @@ public class TarotDrawScreenView extends FrameLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         updateTexts();
+        updateSwipeBackState();
     }
 
     public boolean isAnimating() {
@@ -140,11 +147,90 @@ public class TarotDrawScreenView extends FrameLayout {
             }
         }
         if (tvTip != null) {
-            if (activity.tarotTargetCount == -1 && activity.tarotDrawnCount >= 1) {
-                tvTip.setText("表冠左右选择 · 上滑抽牌 · 点击/下滑结束");
-            } else {
-                tvTip.setText("表冠左右选择 · 向上滑动抽牌");
+            String stateTip = isFastSlideUnlocked ? "左右滑牌" : "长按解锁";
+            tvTip.setText(stateTip + " · 上滑抽牌");
+        }
+    }
+
+    public void handleLongPress(float x, float y) {
+        int w = getWidth();
+        int h = getHeight();
+        if (w == 0 || h == 0) return;
+
+        float cx = w / 2f;
+        float cy = h / 2f;
+        float dx = x - cx;
+        float dy = y - cy;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+
+        float centerThreshold = 100f * activity.density;
+        if (dist <= centerThreshold) {
+            isFastSlideUnlocked = !isFastSlideUnlocked;
+            activity.isTarotFastSlideUnlocked = isFastSlideUnlocked;
+            activity.vibrateCustom(android.os.VibrationEffect.EFFECT_CLICK);
+            animateGlow(isFastSlideUnlocked);
+            updateTexts();
+            updateSwipeBackState();
+        }
+    }
+
+    private void animateGlow(boolean show) {
+        if (glowAnimator != null) {
+            glowAnimator.cancel();
+        }
+        float start = glowFraction;
+        float end = show ? 1f : 0f;
+        glowAnimator = ValueAnimator.ofFloat(start, end);
+        glowAnimator.setDuration(300);
+        glowAnimator.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        glowAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                glowFraction = (float) animation.getAnimatedValue();
+                invalidate();
             }
+        });
+        glowAnimator.start();
+    }
+
+    private void drawBezelGlow(android.graphics.Canvas canvas) {
+        int w = getWidth();
+        int h = getHeight();
+        float radius = Math.min(w, h) / 2f;
+        float cx = w / 2f;
+        float cy = h / 2f;
+        float r = radius - 6 * activity.density;
+
+        android.graphics.Paint p = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        p.setStyle(android.graphics.Paint.Style.STROKE);
+        p.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+
+        android.graphics.RectF oval = new android.graphics.RectF(cx - r, cy - r, cx + r, cy + r);
+        int goldColor = android.graphics.Color.parseColor("#D4AF37");
+
+        // 1. 绘制外圈宽泛发光层
+        p.setStrokeWidth(5f * activity.density);
+        p.setColor(goldColor);
+        p.setAlpha((int) (60 * glowFraction));
+        canvas.drawArc(oval, -90f, 360f * glowFraction, false, p);
+
+        // 2. 绘制内圈清晰核心层
+        p.setStrokeWidth(1.8f * activity.density);
+        p.setAlpha((int) (255 * glowFraction));
+        canvas.drawArc(oval, -90f, 360f * glowFraction, false, p);
+    }
+
+    @Override
+    protected void dispatchDraw(android.graphics.Canvas canvas) {
+        super.dispatchDraw(canvas);
+        if (glowFraction > 0f) {
+            drawBezelGlow(canvas);
+        }
+    }
+
+    private void updateSwipeBackState() {
+        if (getParent() instanceof SwipeBackLayout) {
+            ((SwipeBackLayout) getParent()).setSwipeDisabled(isFastSlideUnlocked);
         }
     }
 
@@ -630,6 +716,9 @@ public class TarotDrawScreenView extends FrameLayout {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
+                if (!isFastSlideUnlocked) {
+                    break;
+                }
                 float dx = event.getX() - dragStartX;
                 if (!isDragging && Math.abs(dx) > 8 * activity.density) {
                     isDragging = true;

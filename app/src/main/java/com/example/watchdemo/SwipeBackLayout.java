@@ -16,6 +16,12 @@ public class SwipeBackLayout extends FrameLayout {
     private View contentView;
     private OnSwipeBackListener listener;
     private float maxDragDistance;
+    private boolean isSwipeDisabled = false;
+
+    public void setSwipeDisabled(boolean disabled) {
+        this.isSwipeDisabled = disabled;
+        Log.d("SwipeBackLayout", "setSwipeDisabled: " + disabled);
+    }
 
     public interface OnSwipeBackListener {
         void onSwipeBack();
@@ -104,6 +110,9 @@ public class SwipeBackLayout extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (isSwipeDisabled) {
+            return false;
+        }
         float density = getResources().getDisplayMetrics().density;
         float edgeThreshold = getWidth() > 0 ? getWidth() * 0.5f : 150 * density;
         Log.d("SwipeBackLayout", "onInterceptTouchEvent action=" + ev.getAction() + " x=" + ev.getRawX() + " y=" + ev.getRawY() + " edgeThreshold=" + edgeThreshold);
@@ -151,6 +160,7 @@ public class SwipeBackLayout extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isSwipeDisabled) return super.onTouchEvent(event);
         Log.d("SwipeBackLayout", "onTouchEvent action=" + event.getAction() + " x=" + event.getRawX() + " isDragging=" + isDragging);
         if (contentView == null) return super.onTouchEvent(event);
 

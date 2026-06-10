@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 public class HistoryScreenView extends FrameLayout {
     private final MainActivity activity;
+    private boolean isApplyingEffects = false;
 
     public HistoryScreenView(final MainActivity activity) {
         super(activity);
@@ -215,105 +216,113 @@ public class HistoryScreenView extends FrameLayout {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                applyEdgeEffects(scrollView, container);
+                if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
+                    applyEdgeEffects(scrollView, container);
+                }
             }
         });
     }
 
     private void applyEdgeEffects(ScrollView scrollView, LinearLayout container) {
-        int parentHeight = scrollView.getHeight();
-        if (parentHeight == 0) return;
+        if (isApplyingEffects) return;
+        isApplyingEffects = true;
+        try {
+            int parentHeight = scrollView.getHeight();
+            if (parentHeight == 0) return;
 
-        int scrollY = scrollView.getScrollY();
-        int childCount = container.getChildCount();
+            int scrollY = scrollView.getScrollY();
+            int childCount = container.getChildCount();
 
-        float thresholdTop = 64 * activity.density; 
-        float minVisibleTop = -20 * activity.density; 
+            float thresholdTop = 64 * activity.density; 
+            float minVisibleTop = -20 * activity.density; 
 
-        float thresholdBottom = parentHeight - 64 * activity.density;
-        float maxVisibleBottom = parentHeight + 20 * activity.density; 
+            float thresholdBottom = parentHeight - 64 * activity.density;
+            float maxVisibleBottom = parentHeight + 20 * activity.density; 
 
-        float[] scales = new float[childCount];
-        float[] translationY = new float[childCount];
+            float[] scales = new float[childCount];
+            float[] translationY = new float[childCount];
 
-        int lastTopIndex = -1;
-        int firstBottomIndex = childCount;
+            int lastTopIndex = -1;
+            int firstBottomIndex = childCount;
 
-        for (int i = 0; i < childCount; i++) {
-            View child = container.getChildAt(i);
-            float childHeight = child.getHeight();
-            if (childHeight == 0) {
-                scales[i] = 1.0f;
-                continue;
+            for (int i = 0; i < childCount; i++) {
+                View child = container.getChildAt(i);
+                float childHeight = child.getHeight();
+                if (childHeight == 0) {
+                    scales[i] = 1.0f;
+                    continue;
+                }
+
+                float relativeTop = child.getTop() - scrollY;
+                float relativeBottom = child.getBottom() - scrollY;
+
+                float scale = 1.0f;
+                float alpha = 1.0f;
+
+                if (relativeTop < thresholdTop) {
+                    float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
+                    ratio = Math.max(0f, Math.min(1f, ratio));
+                    scale = ratio * 0.15f + 0.85f; 
+                    alpha = ratio * 0.3f + 0.7f;   
+                    lastTopIndex = i;
+                } else if (relativeBottom > thresholdBottom) {
+                    float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
+                    ratio = Math.max(0f, Math.min(1f, ratio));
+                    scale = ratio * 0.15f + 0.85f; 
+                    alpha = ratio * 0.3f + 0.7f;   
+                    if (firstBottomIndex == childCount) {
+                        firstBottomIndex = i;
+                    }
+                }
+
+                scales[i] = scale;
+                child.setAlpha(alpha);
             }
 
-            float relativeTop = child.getTop() - scrollY;
-            float relativeBottom = child.getBottom() - scrollY;
+            if (lastTopIndex >= 0) {
+                for (int j = lastTopIndex; j >= 0; j--) {
+                    View childJ = container.getChildAt(j);
+                    float hJ = childJ.getHeight();
+                    float tNext = 0f;
+                    float scaleNext = 1f;
+                    float hNext = 0f;
 
-            float scale = 1.0f;
-            float alpha = 1.0f;
+                    if (j + 1 < childCount) {
+                        tNext = translationY[j + 1];
+                        scaleNext = scales[j + 1];
+                        hNext = container.getChildAt(j + 1).getHeight();
+                    }
 
-            if (relativeTop < thresholdTop) {
-                float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
-                ratio = Math.max(0f, Math.min(1f, ratio));
-                scale = ratio * 0.15f + 0.85f; 
-                alpha = ratio * 0.3f + 0.7f;   
-                lastTopIndex = i;
-            } else if (relativeBottom > thresholdBottom) {
-                float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
-                ratio = Math.max(0f, Math.min(1f, ratio));
-                scale = ratio * 0.15f + 0.85f; 
-                alpha = ratio * 0.3f + 0.7f;   
-                if (firstBottomIndex == childCount) {
-                    firstBottomIndex = i;
+                    translationY[j] = tNext + hJ / 2f * (1f - scales[j]) + hNext / 2f * (1f - scaleNext);
                 }
             }
 
-            scales[i] = scale;
-            child.setAlpha(alpha);
-        }
+            if (firstBottomIndex < childCount) {
+                for (int j = firstBottomIndex; j < childCount; j++) {
+                    View childJ = container.getChildAt(j);
+                    float hJ = childJ.getHeight();
+                    float tPrev = 0f;
+                    float scalePrev = 1f;
+                    float hPrev = 0f;
 
-        if (lastTopIndex >= 0) {
-            for (int j = lastTopIndex; j >= 0; j--) {
-                View childJ = container.getChildAt(j);
-                float hJ = childJ.getHeight();
-                float tNext = 0f;
-                float scaleNext = 1f;
-                float hNext = 0f;
+                    if (j - 1 >= 0) {
+                        tPrev = translationY[j - 1];
+                        scalePrev = scales[j - 1];
+                        hPrev = container.getChildAt(j - 1).getHeight();
+                    }
 
-                if (j + 1 < childCount) {
-                    tNext = translationY[j + 1];
-                    scaleNext = scales[j + 1];
-                    hNext = container.getChildAt(j + 1).getHeight();
+                    translationY[j] = tPrev - hJ / 2f * (1f - scales[j]) - hPrev / 2f * (1f - scalePrev);
                 }
-
-                translationY[j] = tNext + hJ / 2f * (1f - scales[j]) + hNext / 2f * (1f - scaleNext);
             }
-        }
 
-        if (firstBottomIndex < childCount) {
-            for (int j = firstBottomIndex; j < childCount; j++) {
-                View childJ = container.getChildAt(j);
-                float hJ = childJ.getHeight();
-                float tPrev = 0f;
-                float scalePrev = 1f;
-                float hPrev = 0f;
-
-                if (j - 1 >= 0) {
-                    tPrev = translationY[j - 1];
-                    scalePrev = scales[j - 1];
-                    hPrev = container.getChildAt(j - 1).getHeight();
-                }
-
-                translationY[j] = tPrev - hJ / 2f * (1f - scales[j]) - hPrev / 2f * (1f - scalePrev);
+            for (int i = 0; i < childCount; i++) {
+                View child = container.getChildAt(i);
+                child.setScaleX(scales[i]);
+                child.setScaleY(scales[i]);
+                child.setTranslationY(translationY[i]);
             }
-        }
-
-        for (int i = 0; i < childCount; i++) {
-            View child = container.getChildAt(i);
-            child.setScaleX(scales[i]);
-            child.setScaleY(scales[i]);
-            child.setTranslationY(translationY[i]);
+        } finally {
+            isApplyingEffects = false;
         }
     }
 
@@ -355,10 +364,14 @@ public class HistoryScreenView extends FrameLayout {
                     activity.vibrateCustom(android.os.VibrationEffect.EFFECT_CLICK);
                     if (activity.historyTabIndex == 0) {
                         if (index < activity.liuyaoHistoryList.size()) {
+                            MainActivity.LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(index);
+                            activity.deleteLiuyaoHistory(item.id);
                             activity.liuyaoHistoryList.remove(index);
                         }
                     } else {
                         if (index < activity.tarotHistoryList.size()) {
+                            MainActivity.TarotHistoryItem item = activity.tarotHistoryList.get(index);
+                            activity.deleteTarotHistory(item.id);
                             activity.tarotHistoryList.remove(index);
                         }
                     }

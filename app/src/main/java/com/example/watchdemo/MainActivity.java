@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
 
     ScreenState currentScreen = ScreenState.INIT;
     public boolean isSwipeBackDragging = false;
+    private boolean isStartingActivity = false;
     Vibrator vibrator;
     private android.os.HandlerThread vibrateThread;
     private android.os.Handler vibrateHandler;
@@ -58,16 +59,19 @@ public class MainActivity extends Activity {
     int settingsSelectedIndex = 0;
 
     public static class LiuyaoHistoryItem {
+        public long id;
         public String displayStr;
         public int[] lineResults;
         
-        public LiuyaoHistoryItem(String displayStr, int[] lineResults) {
+        public LiuyaoHistoryItem(long id, String displayStr, int[] lineResults) {
+            this.id = id;
             this.displayStr = displayStr;
             this.lineResults = lineResults.clone();
         }
     }
 
     public static class TarotHistoryItem {
+        public long id;
         public String displayStr;
         public int targetCount;
         public int drawnCount;
@@ -75,7 +79,8 @@ public class MainActivity extends Activity {
         public boolean[] cardStates;
         public int arraySelectedIndex;
         
-        public TarotHistoryItem(String displayStr, int targetCount, int drawnCount, int[] drawnIndices, boolean[] cardStates, int arraySelectedIndex) {
+        public TarotHistoryItem(long id, String displayStr, int targetCount, int drawnCount, int[] drawnIndices, boolean[] cardStates, int arraySelectedIndex) {
+            this.id = id;
             this.displayStr = displayStr;
             this.targetCount = targetCount;
             this.drawnCount = drawnCount;
@@ -90,6 +95,8 @@ public class MainActivity extends Activity {
     int historySelectedIndex = 0;
     public java.util.List<LiuyaoHistoryItem> liuyaoHistoryList = new java.util.ArrayList<>();
     public java.util.List<TarotHistoryItem> tarotHistoryList = new java.util.ArrayList<>();
+    HistoryDbHelper dbHelper;
+    final java.util.concurrent.Executor dbExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
 
     // 六爻起卦状态
     int liuyaoRollCount = 0;
@@ -125,6 +132,7 @@ public class MainActivity extends Activity {
     int[] tarotDrawnIndices = new int[78];
     boolean[] tarotCardStates = new boolean[78];
     List<Integer> availableTarotCards = new ArrayList<>();
+    public boolean isTarotFastSlideUnlocked = false;
 
     // 随机化种子与变量
     public long appStartTime = 0L;
@@ -185,7 +193,8 @@ public class MainActivity extends Activity {
         
         density = getResources().getDisplayMetrics().density;
 
-        // Initialize state (load from SharedPreferences)
+        // Initialize state (load from Database)
+        dbHelper = new HistoryDbHelper(this);
         loadHistory();
 
         // 初始化自定义手势与表冠控制器
@@ -229,6 +238,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        isStartingActivity = false;
         loadHistory();
         if (currentScreen == ScreenState.INIT && mInitScreenView != null) {
             mInitScreenView.startAnimation();
@@ -274,6 +284,10 @@ public class MainActivity extends Activity {
 
     void switchScreen(ScreenState newState) {
         if (!(this instanceof SubActivity) && newState != ScreenState.INIT) {
+            if (isStartingActivity) {
+                return;
+            }
+            isStartingActivity = true;
             android.content.Intent intent = new android.content.Intent(this, SubActivity.class);
             intent.putExtra("TARGET_SCREEN", newState);
             startActivity(intent);
@@ -405,7 +419,10 @@ public class MainActivity extends Activity {
                 boolean shouldWrap = (this instanceof SubActivity) && (currentScreen == ScreenState.SETTINGS 
                         || currentScreen == ScreenState.HISTORY 
                         || currentScreen == ScreenState.LIUYAO_DRAW 
-                        || currentScreen == ScreenState.TAROT_ARRAY_SELECT);
+                        || currentScreen == ScreenState.TAROT_ARRAY_SELECT
+                        || currentScreen == ScreenState.TAROT_DRAW
+                        || currentScreen == ScreenState.TAROT_RESULT
+                        || currentScreen == ScreenState.LIUYAO_RESULT);
                 if (shouldWrap) {
                     SwipeBackLayout swipeBackLayout = new SwipeBackLayout(this);
                     swipeBackLayout.setLayoutParams(new FrameLayout.LayoutParams(
@@ -420,7 +437,11 @@ public class MainActivity extends Activity {
                     swipeBackLayout.setOnSwipeBackListener(new SwipeBackLayout.OnSwipeBackListener() {
                         @Override
                         public void onSwipeBack() {
-                            switchScreen(ScreenState.INIT);
+                            if (currentScreen == ScreenState.LIUYAO_RESULT) {
+                                switchScreen(previousScreen);
+                            } else {
+                                switchScreen(ScreenState.INIT);
+                            }
                         }
                     });
                     mSafeContainer.addView(swipeBackLayout);
@@ -711,110 +732,115 @@ public class MainActivity extends Activity {
         try {
             android.content.SharedPreferences prefs = getSharedPreferences("watch_demo_prefs", MODE_PRIVATE);
             android.content.SharedPreferences.Editor editor = prefs.edit();
-            
-            // Serialize Liuyao history
-            org.json.JSONArray liuyaoArr = new org.json.JSONArray();
-            for (LiuyaoHistoryItem item : liuyaoHistoryList) {
-                org.json.JSONObject obj = new org.json.JSONObject();
-                obj.put("displayStr", item.displayStr);
-                
-                org.json.JSONArray linesArr = new org.json.JSONArray();
-                for (int val : item.lineResults) {
-                    linesArr.put(val);
-                }
-                obj.put("lineResults", linesArr);
-                liuyaoArr.put(obj);
-            }
-            editor.putString("liuyao_history", liuyaoArr.toString());
-            
-            // Serialize Tarot history
-            org.json.JSONArray tarotArr = new org.json.JSONArray();
-            for (TarotHistoryItem item : tarotHistoryList) {
-                org.json.JSONObject obj = new org.json.JSONObject();
-                obj.put("displayStr", item.displayStr);
-                obj.put("targetCount", item.targetCount);
-                obj.put("drawnCount", item.drawnCount);
-                obj.put("arraySelectedIndex", item.arraySelectedIndex);
-                
-                org.json.JSONArray indicesArr = new org.json.JSONArray();
-                for (int val : item.drawnIndices) {
-                    indicesArr.put(val);
-                }
-                obj.put("drawnIndices", indicesArr);
-                
-                org.json.JSONArray statesArr = new org.json.JSONArray();
-                for (boolean val : item.cardStates) {
-                    statesArr.put(val);
-                }
-                obj.put("cardStates", statesArr);
-                
-                tarotArr.put(obj);
-            }
-            editor.putString("tarot_history", tarotArr.toString());
-            
-            // Save vibration setting
             editor.putBoolean("vibration_enabled", vibrationEnabled);
-            
             editor.apply();
         } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Failed to save history", e);
+            android.util.Log.e("MainActivity", "Failed to save settings", e);
         }
     }
 
     public void loadHistory() {
-        try {
-            android.content.SharedPreferences prefs = getSharedPreferences("watch_demo_prefs", MODE_PRIVATE);
-            
-            // Load vibration setting
-            vibrationEnabled = prefs.getBoolean("vibration_enabled", true);
-            
-            // Load Liuyao history
-            String liuyaoStr = prefs.getString("liuyao_history", null);
-            liuyaoHistoryList.clear();
-            if (liuyaoStr != null) {
-                org.json.JSONArray liuyaoArr = new org.json.JSONArray(liuyaoStr);
-                for (int i = 0; i < liuyaoArr.length(); i++) {
-                    org.json.JSONObject obj = liuyaoArr.getJSONObject(i);
-                    String displayStr = obj.getString("displayStr");
-                    org.json.JSONArray linesArr = obj.getJSONArray("lineResults");
-                    int[] lineResults = new int[linesArr.length()];
-                    for (int j = 0; j < linesArr.length(); j++) {
-                        lineResults[j] = linesArr.getInt(j);
-                    }
-                    liuyaoHistoryList.add(new LiuyaoHistoryItem(displayStr, lineResults));
-                }
-            }
-            
-            // Load Tarot history
-            String tarotStr = prefs.getString("tarot_history", null);
-            tarotHistoryList.clear();
-            if (tarotStr != null) {
-                org.json.JSONArray tarotArr = new org.json.JSONArray(tarotStr);
-                for (int i = 0; i < tarotArr.length(); i++) {
-                    org.json.JSONObject obj = tarotArr.getJSONObject(i);
-                    String displayStr = obj.getString("displayStr");
-                    int targetCount = obj.getInt("targetCount");
-                    int drawnCount = obj.getInt("drawnCount");
-                    int arraySelectedIndex = obj.getInt("arraySelectedIndex");
-                    
-                    org.json.JSONArray indicesArr = obj.getJSONArray("drawnIndices");
-                    int[] drawnIndices = new int[indicesArr.length()];
-                    for (int j = 0; j < indicesArr.length(); j++) {
-                        drawnIndices[j] = indicesArr.getInt(j);
-                    }
-                    
-                    org.json.JSONArray statesArr = obj.getJSONArray("cardStates");
-                    boolean[] cardStates = new boolean[statesArr.length()];
-                    for (int j = 0; j < statesArr.length(); j++) {
-                        cardStates[j] = statesArr.getBoolean(j);
-                    }
-                    
-                    tarotHistoryList.add(new TarotHistoryItem(displayStr, targetCount, drawnCount, drawnIndices, cardStates, arraySelectedIndex));
-                }
-            }
-        } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Failed to load history", e);
+        if (dbHelper == null) {
+            dbHelper = new HistoryDbHelper(this);
         }
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                final java.util.List<LiuyaoHistoryItem> tempLiuyao = new java.util.ArrayList<>();
+                final java.util.List<TarotHistoryItem> tempTarot = new java.util.ArrayList<>();
+                
+                android.database.sqlite.SQLiteDatabase db = null;
+                android.database.Cursor cursor = null;
+                try {
+                    db = dbHelper.getReadableDatabase();
+                    
+                    // 1. Load Liuyao history
+                    cursor = db.query("liuyao_history", null, null, null, null, null, "create_time DESC");
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int idCol = cursor.getColumnIndex("id");
+                        int displayCol = cursor.getColumnIndex("display_str");
+                        int resultsCol = cursor.getColumnIndex("line_results");
+                        do {
+                            long id = cursor.getLong(idCol);
+                            String displayStr = cursor.getString(displayCol);
+                            String resultsStr = cursor.getString(resultsCol);
+                            
+                            String[] parts = resultsStr.split(",");
+                            int[] lineResults = new int[parts.length];
+                            for (int i = 0; i < parts.length; i++) {
+                                lineResults[i] = Integer.parseInt(parts[i].trim());
+                            }
+                            tempLiuyao.add(new LiuyaoHistoryItem(id, displayStr, lineResults));
+                        } while (cursor.moveToNext());
+                    }
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                    
+                    // 2. Load Tarot history
+                    cursor = db.query("tarot_history", null, null, null, null, null, "create_time DESC");
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int idCol = cursor.getColumnIndex("id");
+                        int displayCol = cursor.getColumnIndex("display_str");
+                        int targetCol = cursor.getColumnIndex("target_count");
+                        int drawnCol = cursor.getColumnIndex("drawn_count");
+                        int indicesCol = cursor.getColumnIndex("drawn_indices");
+                        int statesCol = cursor.getColumnIndex("card_states");
+                        int arraySelCol = cursor.getColumnIndex("array_selected_index");
+                        do {
+                            long id = cursor.getLong(idCol);
+                            String displayStr = cursor.getString(displayCol);
+                            int targetCount = cursor.getInt(targetCol);
+                            int drawnCount = cursor.getInt(drawnCol);
+                            String indicesStr = cursor.getString(indicesCol);
+                            String statesStr = cursor.getString(statesCol);
+                            int arraySelectedIndex = cursor.getInt(arraySelCol);
+                            
+                            int[] drawnIndices;
+                            if (indicesStr.trim().isEmpty()) {
+                                drawnIndices = new int[0];
+                            } else {
+                                String[] parts = indicesStr.split(",");
+                                drawnIndices = new int[parts.length];
+                                for (int i = 0; i < parts.length; i++) {
+                                    drawnIndices[i] = Integer.parseInt(parts[i].trim());
+                                }
+                            }
+                            
+                            boolean[] cardStates;
+                            if (statesStr.trim().isEmpty()) {
+                                cardStates = new boolean[0];
+                            } else {
+                                String[] parts = statesStr.split(",");
+                                cardStates = new boolean[parts.length];
+                                for (int i = 0; i < parts.length; i++) {
+                                    cardStates[i] = "1".equals(parts[i].trim()) || "true".equalsIgnoreCase(parts[i].trim());
+                                }
+                            }
+                            
+                            tempTarot.add(new TarotHistoryItem(id, displayStr, targetCount, drawnCount, drawnIndices, cardStates, arraySelectedIndex));
+                        } while (cursor.moveToNext());
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to load history from database", e);
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                }
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        liuyaoHistoryList.clear();
+                        liuyaoHistoryList.addAll(tempLiuyao);
+                        tarotHistoryList.clear();
+                        tarotHistoryList.addAll(tempTarot);
+                        renderScreen();
+                    }
+                });
+            }
+        });
     }
 
     public void addLiuyaoHistory() {
@@ -825,10 +851,45 @@ public class MainActivity extends Activity {
             guaName = guaName + "之" + zhiName;
         }
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        String dateStr = sdf.format(new java.util.Date());
-        liuyaoHistoryList.add(0, new LiuyaoHistoryItem(dateStr + " " + guaName, liuyaoLineResults));
+        final String dateStr = sdf.format(new java.util.Date());
+        final String displayStr = dateStr + " " + guaName;
+        final int[] lineResultsClone = liuyaoLineResults.clone();
         
-        saveHistory();
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                android.database.sqlite.SQLiteDatabase db = null;
+                long insertedId = -1;
+                try {
+                    db = dbHelper.getWritableDatabase();
+                    android.content.ContentValues values = new android.content.ContentValues();
+                    values.put("display_str", displayStr);
+                    
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < lineResultsClone.length; i++) {
+                        sb.append(lineResultsClone[i]);
+                        if (i < lineResultsClone.length - 1) {
+                            sb.append(",");
+                        }
+                    }
+                    values.put("line_results", sb.toString());
+                    values.put("create_time", System.currentTimeMillis());
+                    
+                    insertedId = db.insert("liuyao_history", null, values);
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to insert liuyao history", e);
+                }
+                
+                final long finalId = insertedId;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        liuyaoHistoryList.add(0, new LiuyaoHistoryItem(finalId, displayStr, lineResultsClone));
+                        saveHistory();
+                    }
+                });
+            }
+        });
     }
 
     public void addTarotHistory() {
@@ -855,11 +916,88 @@ public class MainActivity extends Activity {
 
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         String dateStr = sdf.format(new java.util.Date());
+        final String displayStr = dateStr + " " + arrayName + primaryCard;
+        final int targetCount = tarotTargetCount;
+        final int drawnCount = tarotDrawnCount;
+        final int[] drawnIndicesClone = tarotDrawnIndices.clone();
+        final boolean[] cardStatesClone = tarotCardStates.clone();
+        final int arraySelIdx = tarotArraySelectedIndex;
 
-        tarotHistoryList.add(0, new TarotHistoryItem(dateStr + " " + arrayName + primaryCard,
-                tarotTargetCount, tarotDrawnCount, tarotDrawnIndices, tarotCardStates, tarotArraySelectedIndex));
-        
-        saveHistory();
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                android.database.sqlite.SQLiteDatabase db = null;
+                long insertedId = -1;
+                try {
+                    db = dbHelper.getWritableDatabase();
+                    android.content.ContentValues values = new android.content.ContentValues();
+                    values.put("display_str", displayStr);
+                    values.put("target_count", targetCount);
+                    values.put("drawn_count", drawnCount);
+                    
+                    StringBuilder idxSb = new StringBuilder();
+                    for (int i = 0; i < drawnIndicesClone.length; i++) {
+                        idxSb.append(drawnIndicesClone[i]);
+                        if (i < drawnIndicesClone.length - 1) {
+                            idxSb.append(",");
+                        }
+                    }
+                    values.put("drawn_indices", idxSb.toString());
+                    
+                    StringBuilder stateSb = new StringBuilder();
+                    for (int i = 0; i < cardStatesClone.length; i++) {
+                        stateSb.append(cardStatesClone[i] ? "1" : "0");
+                        if (i < cardStatesClone.length - 1) {
+                            stateSb.append(",");
+                        }
+                    }
+                    values.put("card_states", stateSb.toString());
+                    values.put("array_selected_index", arraySelIdx);
+                    values.put("create_time", System.currentTimeMillis());
+                    
+                    insertedId = db.insert("tarot_history", null, values);
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to insert tarot history", e);
+                }
+                
+                final long finalId = insertedId;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tarotHistoryList.add(0, new TarotHistoryItem(finalId, displayStr, targetCount, drawnCount, drawnIndicesClone, cardStatesClone, arraySelIdx));
+                        saveHistory();
+                    }
+                });
+            }
+        });
+    }
+
+    public void deleteLiuyaoHistory(final long id) {
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    android.database.sqlite.SQLiteDatabase db = dbHelper.getWritableDatabase();
+                    db.delete("liuyao_history", "id = ?", new String[]{String.valueOf(id)});
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to delete liuyao history", e);
+                }
+            }
+        });
+    }
+
+    public void deleteTarotHistory(final long id) {
+        dbExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    android.database.sqlite.SQLiteDatabase db = dbHelper.getWritableDatabase();
+                    db.delete("tarot_history", "id = ?", new String[]{String.valueOf(id)});
+                } catch (Exception e) {
+                    android.util.Log.e("MainActivity", "Failed to delete tarot history", e);
+                }
+            }
+        });
     }
 
     @Override

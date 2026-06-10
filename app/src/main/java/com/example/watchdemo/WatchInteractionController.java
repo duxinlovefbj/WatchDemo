@@ -124,6 +124,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
             activity.tarotDrawEnterTime = System.currentTimeMillis();
             activity.tarotDrawRandom = new java.util.Random(activity.tarotDrawEnterTime);
             
+            activity.isTarotFastSlideUnlocked = false;
             activity.switchScreen(MainActivity.ScreenState.TAROT_DRAW);
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_DRAW) {
             View child = activity.getActiveScreenView();
@@ -176,11 +177,19 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
 
     @Override
     public void onLongPress(float x, float y) {
-        if (activity.currentScreen == MainActivity.ScreenState.TAROT_DRAW
+        if (activity.currentScreen == MainActivity.ScreenState.TAROT_DRAW) {
+            View child = activity.getActiveScreenView();
+            if (child instanceof TarotDrawScreenView) {
+                ((TarotDrawScreenView) child).handleLongPress(x, y);
+            }
+            return;
+        }
+        if (activity.currentScreen == MainActivity.ScreenState.TAROT_RESULT
                 || activity.currentScreen == MainActivity.ScreenState.HISTORY
                 || activity.currentScreen == MainActivity.ScreenState.SETTINGS
                 || activity.currentScreen == MainActivity.ScreenState.LIUYAO_DRAW
-                || activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT) {
+                || activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT
+                || activity.currentScreen == MainActivity.ScreenState.LIUYAO_RESULT) {
             // These screens use swipe-to-back, disable long press return to prevent accidental triggers
             return;
         }
@@ -203,9 +212,6 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
             activity.finish(); // 右滑退出程序 (OPPO 设计规范)
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT) {
             activity.switchScreen(MainActivity.ScreenState.INIT);
-        } else if (activity.currentScreen == MainActivity.ScreenState.LIUYAO_RESULT) {
-            activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
-            activity.switchScreen(activity.previousScreen);
         }
     }
 
@@ -230,12 +236,14 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT) {
             // 已改为 ScrollView 滚动列表，由 ScrollView 处理上下滑动
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_DRAW) {
-            if (activity.mSafeContainer.getChildCount() > 0 && activity.mSafeContainer.getChildAt(0) instanceof TarotDrawScreenView) {
-                ((TarotDrawScreenView) activity.mSafeContainer.getChildAt(0)).startDrawAnimation();
+            View child = activity.getActiveScreenView();
+            if (child instanceof TarotDrawScreenView) {
+                ((TarotDrawScreenView) child).startDrawAnimation();
             }
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_RESULT) {
-            if (activity.mSafeContainer.getChildCount() > 0 && activity.mSafeContainer.getChildAt(0) instanceof TarotResultScreenView) {
-                ((TarotResultScreenView) activity.mSafeContainer.getChildAt(0)).onCrownScroll(true);
+            View child = activity.getActiveScreenView();
+            if (child instanceof TarotResultScreenView) {
+                ((TarotResultScreenView) child).onCrownScroll(true);
             }
         }
     }

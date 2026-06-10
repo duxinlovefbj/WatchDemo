@@ -614,4 +614,13 @@ public class LiuyaoResultScreenView extends View {
         paint.setColor(hourColor);
         canvas.drawTextOnPath(hourStr, path, startOffset + wYear + wSpace + wMonth + wSpace + wDay + wSpace, 0, paint);
     }
+
+    @Override
+    public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+        if (activity.gestureDetector != null) {
+            activity.gestureDetector.onTouchEvent(this, event);
+            return true;
+        }
+        return super.dispatchTouchEvent(event);
+    }
 }
