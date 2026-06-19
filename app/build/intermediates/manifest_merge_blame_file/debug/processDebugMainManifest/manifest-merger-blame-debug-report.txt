@@ -9,54 +9,54 @@
 9        android:targetSdkVersion="35" />
 10
 11    <uses-permission android:name="android.permission.VIBRATE" />
-11-->L:\Watch Demo\app\src\main\AndroidManifest.xml:2:5-66
-11-->L:\Watch Demo\app\src\main\AndroidManifest.xml:2:22-63
+11-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:2:5-66
+11-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:2:22-63
 12
 13    <uses-feature android:name="android.hardware.type.watch" />
-13-->L:\Watch Demo\app\src\main\AndroidManifest.xml:3:5-64
-13-->L:\Watch Demo\app\src\main\AndroidManifest.xml:3:19-61
+13-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:3:5-64
+13-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:3:19-61
 14
 15    <application
-15-->L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
+15-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:5:5-29:19
 16        android:allowBackup="false"
-16-->L:\Watch Demo\app\src\main\AndroidManifest.xml:10:9-36
+16-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:10:9-36
 17        android:debuggable="true"
 18        android:extractNativeLibs="false"
 19        android:icon="@mipmap/ic_launcher"
-19-->L:\Watch Demo\app\src\main\AndroidManifest.xml:8:9-43
+19-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:8:9-43
 20        android:label="星曜"
-20-->L:\Watch Demo\app\src\main\AndroidManifest.xml:7:9-27
+20-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:7:9-27
 21        android:roundIcon="@mipmap/ic_launcher_round"
-21-->L:\Watch Demo\app\src\main\AndroidManifest.xml:9:9-54
+21-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:9:9-54
 22        android:supportsRtl="true"
-22-->L:\Watch Demo\app\src\main\AndroidManifest.xml:11:9-35
+22-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:11:9-35
 23        android:theme="@style/AppTheme" >
-23-->L:\Watch Demo\app\src\main\AndroidManifest.xml:6:9-40
+23-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:6:9-40
 24        <activity
-24-->L:\Watch Demo\app\src\main\AndroidManifest.xml:13:9-22:20
+24-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:13:9-22:20
 25            android:name="com.example.watchdemo.MainActivity"
-25-->L:\Watch Demo\app\src\main\AndroidManifest.xml:14:13-41
+25-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:14:13-41
 26            android:exported="true" >
-26-->L:\Watch Demo\app\src\main\AndroidManifest.xml:15:13-36
+26-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:15:13-36
 27            <intent-filter>
-27-->L:\Watch Demo\app\src\main\AndroidManifest.xml:17:13-20:29
+27-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:17:13-20:29
 28                <action android:name="android.intent.action.MAIN" />
-28-->L:\Watch Demo\app\src\main\AndroidManifest.xml:18:17-69
-28-->L:\Watch Demo\app\src\main\AndroidManifest.xml:18:25-66
+28-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:18:17-69
+28-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:18:25-66
 29
 30                <category android:name="android.intent.category.LAUNCHER" />
-30-->L:\Watch Demo\app\src\main\AndroidManifest.xml:19:17-77
-30-->L:\Watch Demo\app\src\main\AndroidManifest.xml:19:27-74
+30-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:19:17-77
+30-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:19:27-74
 31            </intent-filter>
 32        </activity>
 33        <activity
-33-->L:\Watch Demo\app\src\main\AndroidManifest.xml:24:9-27:40
+33-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:24:9-27:40
 34            android:name="com.example.watchdemo.SubActivity"
-34-->L:\Watch Demo\app\src\main\AndroidManifest.xml:25:13-40
+34-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:25:13-40
 35            android:exported="false"
-35-->L:\Watch Demo\app\src\main\AndroidManifest.xml:27:13-37
+35-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:27:13-37
 36            android:theme="@style/AppTheme.NoSwipe" />
-36-->L:\Watch Demo\app\src\main\AndroidManifest.xml:26:13-52
+36-->C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:26:13-52
 37    </application>
 38
 39</manifest>

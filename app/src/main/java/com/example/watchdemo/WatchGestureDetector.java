@@ -25,6 +25,7 @@ public class WatchGestureDetector {
     private boolean isLongPressedTriggered;
     private boolean isMoving;
     private Runnable longPressRunnable;
+    private boolean isGestureActive = false;
 
     public WatchGestureDetector(Context context, GestureListener listener) {
         this.density = context.getResources().getDisplayMetrics().density;
@@ -39,6 +40,7 @@ public class WatchGestureDetector {
                 startTime = System.currentTimeMillis();
                 isLongPressedTriggered = false;
                 isMoving = false;
+                isGestureActive = true;
                 
                 if (longPressRunnable != null) {
                     v.removeCallbacks(longPressRunnable);
@@ -56,18 +58,25 @@ public class WatchGestureDetector {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
+                if (!isGestureActive) {
+                    return false;
+                }
                 float dx = event.getX() - startX;
                 float dy = event.getY() - startY;
                 float dist = (float) Math.sqrt(dx * dx + dy * dy);
                 if (dist > 8 * density) { // 稍微移动即取消长按判定
-                    isMoving = true;
-                    if (longPressRunnable != null) {
-                        v.removeCallbacks(longPressRunnable);
-                    }
+                     isMoving = true;
+                     if (longPressRunnable != null) {
+                         v.removeCallbacks(longPressRunnable);
+                     }
                 }
                 return true;
 
             case MotionEvent.ACTION_UP:
+                if (!isGestureActive) {
+                    return false;
+                }
+                isGestureActive = false;
                 if (longPressRunnable != null) {
                     v.removeCallbacks(longPressRunnable);
                 }
@@ -104,6 +113,10 @@ public class WatchGestureDetector {
                 return true;
                 
             case MotionEvent.ACTION_CANCEL:
+                if (!isGestureActive) {
+                    return false;
+                }
+                isGestureActive = false;
                 if (longPressRunnable != null) {
                     v.removeCallbacks(longPressRunnable);
                 }

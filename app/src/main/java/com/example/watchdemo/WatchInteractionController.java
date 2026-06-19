@@ -43,6 +43,9 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
                 activity.clearAllHistory();
             } else if (activity.settingsSelectedIndex == 2) {
                 activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
+                activity.showOperationGuide(true);
+            } else if (activity.settingsSelectedIndex == 3) {
+                activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
                 final android.app.Dialog dialog = new android.app.Dialog(activity, android.R.style.Theme_Material_NoActionBar_Fullscreen);
                 dialog.setContentView(R.layout.dialog_about);
                 if (dialog.getWindow() != null) {

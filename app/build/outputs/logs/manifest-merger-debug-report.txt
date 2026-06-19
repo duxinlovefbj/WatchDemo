@@ -1,71 +1,71 @@
 -- Merging decision tree log ---
 manifest
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:1-31:12
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:1:1-31:12
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:1:1-31:12
 	package
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	android:versionName
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	android:versionCode
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:1:11-69
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:1:11-69
 uses-permission#android.permission.VIBRATE
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:2:5-66
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:2:5-66
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:2:22-63
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:2:22-63
 uses-feature#android.hardware.type.watch
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:3:5-64
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:3:5-64
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:3:19-61
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:3:19-61
 application
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml:5:5-29:19
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:5:5-29:19
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:5:5-29:19
 	android:extractNativeLibs
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	android:supportsRtl
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:11:9-35
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:11:9-35
 	android:label
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:7:9-27
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:7:9-27
 	android:roundIcon
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:9:9-54
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:9:9-54
 	android:icon
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:8:9-43
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:8:9-43
 	android:allowBackup
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:10:9-36
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:10:9-36
 	android:theme
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:6:9-40
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:6:9-40
 activity#com.example.watchdemo.MainActivity
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:13:9-22:20
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:13:9-22:20
 	android:exported
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:15:13-36
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:15:13-36
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:14:13-41
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:14:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:17:13-20:29
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:17:13-20:29
 action#android.intent.action.MAIN
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:18:17-69
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:18:17-69
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:18:25-66
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:18:25-66
 category#android.intent.category.LAUNCHER
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:19:17-77
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:19:17-77
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:19:27-74
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:19:27-74
 activity#com.example.watchdemo.SubActivity
-ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:24:9-27:40
+ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:24:9-27:40
 	android:exported
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:27:13-37
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:27:13-37
 	android:theme
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:26:13-52
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:26:13-52
 	android:name
-		ADDED from L:\Watch Demo\app\src\main\AndroidManifest.xml:25:13-40
+		ADDED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml:25:13-40
 uses-sdk
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
-INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from L:\Watch Demo\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Duxin\Documents\Projects\WatchDemo\app\src\main\AndroidManifest.xml

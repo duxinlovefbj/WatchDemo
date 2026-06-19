@@ -1,6 +1,5 @@
 package com.example.watchdemo;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,14 +30,15 @@ public class SettingsScreenView extends FrameLayout {
         String[] itemTexts = {
                 "起卦震动: " + (activity.vibrationEnabled ? "开" : "关"),
                 "清除历史记录",
+                "操作指南",
                 "关于星曜"
         };
 
         String[] itemIcons = {
-                "震", "清", "曜"
+                "震", "清", "助", "曜"
         };
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < itemTexts.length; i++) {
             final int index = i;
             View card = inflater.inflate(R.layout.item_tarot_array, container, false);
 
@@ -113,11 +113,11 @@ public class SettingsScreenView extends FrameLayout {
             int scrollY = scrollView.getScrollY();
             int childCount = container.getChildCount();
 
-            float thresholdTop = 64 * activity.density; 
-            float minVisibleTop = -20 * activity.density; 
+            float thresholdTop = 64 * activity.density;
+            float minVisibleTop = -20 * activity.density;
 
             float thresholdBottom = parentHeight - 64 * activity.density;
-            float maxVisibleBottom = parentHeight + 20 * activity.density; 
+            float maxVisibleBottom = parentHeight + 20 * activity.density;
 
             float[] scales = new float[childCount];
             float[] translationY = new float[childCount];
@@ -142,14 +142,14 @@ public class SettingsScreenView extends FrameLayout {
                 if (relativeTop < thresholdTop) {
                     float ratio = (relativeTop - minVisibleTop) / (thresholdTop - minVisibleTop);
                     ratio = Math.max(0f, Math.min(1f, ratio));
-                    scale = ratio * 0.15f + 0.85f; 
-                    alpha = ratio * 0.3f + 0.7f;   
+                    scale = ratio * 0.15f + 0.85f;
+                    alpha = ratio * 0.3f + 0.7f;
                     lastTopIndex = i;
                 } else if (relativeBottom > thresholdBottom) {
                     float ratio = (maxVisibleBottom - relativeBottom) / (maxVisibleBottom - thresholdBottom);
                     ratio = Math.max(0f, Math.min(1f, ratio));
-                    scale = ratio * 0.15f + 0.85f; 
-                    alpha = ratio * 0.3f + 0.7f;   
+                    scale = ratio * 0.15f + 0.85f;
+                    alpha = ratio * 0.3f + 0.7f;
                     if (firstBottomIndex == childCount) {
                         firstBottomIndex = i;
                     }
@@ -213,7 +213,7 @@ public class SettingsScreenView extends FrameLayout {
             int scrollY = scrollView.getScrollY();
             int maxScrollY = Math.max(0, container.getHeight() - scrollView.getHeight());
 
-            int dy = (int) (64 * activity.density); 
+            int dy = (int) (64 * activity.density);
             if (!clockwise) {
                 dy = -dy;
             }

@@ -132,13 +132,20 @@ public class SwipeBackLayout extends FrameLayout {
         return false;
     }
 
-    private View getUnderneathView() {
-        if (getParent() != null && getParent().getParent() instanceof android.view.ViewGroup) {
-            android.view.ViewGroup root = (android.view.ViewGroup) getParent().getParent();
-            if (root.getChildCount() > 0) {
-                View first = root.getChildAt(0);
-                if (first instanceof InitScreenView) {
-                    return first;
+    View getUnderneathView() {
+        if (getParent() != null && getParent() instanceof android.view.ViewGroup) {
+            android.view.ViewGroup parent = (android.view.ViewGroup) getParent();
+            int index = parent.indexOfChild(this);
+            if (index > 0) {
+                return parent.getChildAt(index - 1);
+            }
+            if (parent.getParent() instanceof android.view.ViewGroup) {
+                android.view.ViewGroup grandParent = (android.view.ViewGroup) parent.getParent();
+                if (grandParent.getChildCount() > 0) {
+                    View first = grandParent.getChildAt(0);
+                    if (first instanceof InitScreenView) {
+                        return first;
+                    }
                 }
             }
         }
@@ -170,7 +177,11 @@ public class SwipeBackLayout extends FrameLayout {
                     float scale = 1.1f - progress * 0.1f;
                     under.setScaleX(scale);
                     under.setScaleY(scale);
-                    under.setAlpha(progress);
+                    if (under instanceof InitScreenView) {
+                        under.setAlpha(progress);
+                    } else {
+                        under.setAlpha(1.0f);
+                    }
                 }
                 return true;
 
@@ -217,10 +228,11 @@ public class SwipeBackLayout extends FrameLayout {
 
                     View underView = getUnderneathView();
                     if (underView != null) {
+                        float targetAlpha = (underView instanceof InitScreenView) ? 0.0f : 1.0f;
                         underView.animate()
                                 .scaleX(1.1f)
                                 .scaleY(1.1f)
-                                .alpha(0.0f)
+                                .alpha(targetAlpha)
                                 .setDuration(duration)
                                 .setInterpolator(new DecelerateInterpolator())
                                 .start();

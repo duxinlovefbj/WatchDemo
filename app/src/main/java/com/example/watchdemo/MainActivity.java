@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     FrameLayout mRootLayout;
     FrameLayout mSafeContainer;
     InitScreenView mInitScreenView;
+    OperationGuideView mOperationGuideView;
     float density;
 
     // 设置状态
@@ -233,6 +234,7 @@ public class MainActivity extends Activity {
         });
 
         renderScreen();
+        showOperationGuideIfNeeded();
     }
 
     @Override
@@ -470,6 +472,51 @@ public class MainActivity extends Activity {
                     mRootLayout.setSystemGestureExclusionRects(rects);
                 }
             }
+        }
+    }
+
+    private void showOperationGuideIfNeeded() {
+        if (this instanceof SubActivity || currentScreen != ScreenState.INIT) {
+            return;
+        }
+        android.content.SharedPreferences prefs = getSharedPreferences("watch_demo_prefs", MODE_PRIVATE);
+        if (!prefs.getBoolean("operation_guide_shown", false)) {
+            prefs.edit().putBoolean("operation_guide_shown", true).apply();
+            showOperationGuide(false);
+        }
+    }
+
+    public void showOperationGuide(boolean isFromSettings) {
+        if (mRootLayout == null) {
+            return;
+        }
+        dismissOperationGuide();
+        mOperationGuideView = new OperationGuideView(this, isFromSettings);
+        mOperationGuideView.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+        mRootLayout.addView(mOperationGuideView);
+    }
+
+    public void dismissOperationGuide() {
+        if (mRootLayout != null && mOperationGuideView != null) {
+            android.view.ViewParent parent = mOperationGuideView.getParent();
+            if (parent instanceof SwipeBackLayout) {
+                SwipeBackLayout sbl = (SwipeBackLayout) parent;
+                View under = sbl.getUnderneathView();
+                if (under != null) {
+                    under.setScaleX(1.0f);
+                    under.setScaleY(1.0f);
+                    under.setAlpha(1.0f);
+                }
+            }
+            if (parent == mRootLayout) {
+                mRootLayout.removeView(mOperationGuideView);
+            } else if (parent instanceof android.view.ViewGroup) {
+                mRootLayout.removeView((android.view.View) parent);
+            }
+            mOperationGuideView = null;
         }
     }
 

@@ -10,6 +10,10 @@ import android.view.ViewGroup;
 public class LiuyaoDrawScreenView extends View {
     private final MainActivity activity;
     private float taijiAngle = 0f;
+    private float touchStartX = 0f;
+    private float touchStartY = 0f;
+    private float lastRollY = 0f;
+    private boolean isTouchRolling = false;
 
     // Cache Paint and RectFs to avoid allocations per frame
     private final Paint mPaint;
@@ -484,10 +488,66 @@ public class LiuyaoDrawScreenView extends View {
     
     @Override
     public boolean dispatchTouchEvent(android.view.MotionEvent event) {
-        if (activity.gestureDetector != null) {
-            activity.gestureDetector.onTouchEvent(this, event);
-            return true;
+        switch (event.getAction()) {
+            case android.view.MotionEvent.ACTION_DOWN:
+                touchStartX = event.getX();
+                touchStartY = event.getY();
+                lastRollY = touchStartY;
+                isTouchRolling = false;
+                if (activity.gestureDetector != null) {
+                    activity.gestureDetector.onTouchEvent(this, event);
+                }
+                return true;
+
+            case android.view.MotionEvent.ACTION_MOVE:
+                float dx = event.getX() - touchStartX;
+                float dy = event.getY() - touchStartY;
+                if (!isTouchRolling
+                        && Math.abs(dy) > 16 * activity.density
+                        && Math.abs(dy) > Math.abs(dx) * 1.2f) {
+                    isTouchRolling = true;
+                    if (activity.gestureDetector != null) {
+                        android.view.MotionEvent cancelEvent = android.view.MotionEvent.obtain(event);
+                        cancelEvent.setAction(android.view.MotionEvent.ACTION_CANCEL);
+                        activity.gestureDetector.onTouchEvent(this, cancelEvent);
+                        cancelEvent.recycle();
+                    }
+                }
+
+                if (isTouchRolling) {
+                    feedTouchRoll(event.getY());
+                    return true;
+                }
+
+                if (activity.gestureDetector != null) {
+                    activity.gestureDetector.onTouchEvent(this, event);
+                    return true;
+                }
+                break;
+
+            case android.view.MotionEvent.ACTION_UP:
+            case android.view.MotionEvent.ACTION_CANCEL:
+                if (isTouchRolling) {
+                    isTouchRolling = false;
+                    return true;
+                }
+                if (activity.gestureDetector != null) {
+                    activity.gestureDetector.onTouchEvent(this, event);
+                    return true;
+                }
+                break;
         }
         return super.dispatchTouchEvent(event);
+    }
+
+    private void feedTouchRoll(float y) {
+        float threshold = 22 * activity.density;
+        float delta = y - lastRollY;
+        while (Math.abs(delta) >= threshold) {
+            boolean isUp = delta < 0;
+            activity.handleLiuyaoScrollStep(isUp);
+            lastRollY += isUp ? -threshold : threshold;
+            delta = y - lastRollY;
+        }
     }
 }
