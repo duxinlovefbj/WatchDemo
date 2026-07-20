@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 public class InitScreenView extends View {
     private final MainActivity activity;
     private boolean isRunning = false;
+    private boolean isFrameCallbackPosted = false;
     private long elapsedTimeMs = 0;
     private long lastFrameTimeMs = 0;
 
@@ -57,6 +58,7 @@ public class InitScreenView extends View {
     private final android.view.Choreographer.FrameCallback frameCallback = new android.view.Choreographer.FrameCallback() {
         @Override
         public void doFrame(long frameTimeNanos) {
+            isFrameCallbackPosted = false;
             if (!isRunning)
                 return;
 
@@ -81,7 +83,12 @@ public class InitScreenView extends View {
             }
 
             invalidate();
-            android.view.Choreographer.getInstance().postFrameCallback(this);
+            // 首页空闲时不维持帧回调，避免静态界面持续送显；仅在页面切换过渡期间继续绘制。
+            if (transitionState != STATE_IDLE) {
+                postNextFrame();
+            } else {
+                isRunning = false;
+            }
         }
     };
 
@@ -153,13 +160,16 @@ public class InitScreenView extends View {
     }
 
     public void startAnimation() {
-        isRunning = true;
-        lastFrameTimeMs = System.currentTimeMillis();
-        android.view.Choreographer.getInstance().postFrameCallback(frameCallback);
+        // 首页默认保持静态。这里仅请求一次绘制，以便从其他页面返回时恢复画面。
+        invalidate();
     }
 
     public void stopAnimation() {
         isRunning = false;
+        if (isFrameCallbackPosted) {
+            android.view.Choreographer.getInstance().removeFrameCallback(frameCallback);
+            isFrameCallbackPosted = false;
+        }
     }
 
     public void startTransition(boolean isLeftSwipe) {
@@ -167,7 +177,17 @@ public class InitScreenView extends View {
             return;
         transitionState = isLeftSwipe ? STATE_SWIPE_LEFT_ANIM : STATE_SWIPE_RIGHT_ANIM;
         transitionStartTimeMs = System.currentTimeMillis();
+        lastFrameTimeMs = transitionStartTimeMs;
+        isRunning = true;
+        postNextFrame();
         activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
+    }
+
+    private void postNextFrame() {
+        if (!isFrameCallbackPosted) {
+            isFrameCallbackPosted = true;
+            android.view.Choreographer.getInstance().postFrameCallback(frameCallback);
+        }
     }
 
     private void transitionComplete() {
@@ -175,6 +195,7 @@ public class InitScreenView extends View {
         final MainActivity.ScreenState nextState = (transitionState == STATE_SWIPE_LEFT_ANIM)
                 ? MainActivity.ScreenState.LIUYAO_DRAW
                 : MainActivity.ScreenState.TAROT_ARRAY_SELECT;
+        transitionState = STATE_IDLE;
 
         post(new Runnable() {
             @Override

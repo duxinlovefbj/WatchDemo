@@ -109,6 +109,9 @@ public class MainActivity extends Activity {
     public long taijiTransitionStartTime = 0L;
     public boolean liuyaoScrollIsClockwise = true;
     int coinAnimFrame = 0;
+    // 六爻滚动特效限制为 15fps；按时间补偿旋转角度，保持与原先相同的视觉转速。
+    private static final long LIUYAO_ANIMATION_FRAME_DELAY_MS = 66L;
+    private static final float LIUYAO_ROTATION_DEGREES_PER_SECOND = 360f;
     long liuyaoVibrateStartTime = 0L;
     long liuyaoLastScrollTime = 0L;
     public float[] liuyaoRingAngles = new float[6];
@@ -606,7 +609,11 @@ public class MainActivity extends Activity {
                 public void run() {
                     if (isCoinsRolling) {
                         coinAnimFrame++;
-                        float step = liuyaoScrollIsClockwise ? -18f : 18f;
+                        float step = LIUYAO_ROTATION_DEGREES_PER_SECOND
+                                * LIUYAO_ANIMATION_FRAME_DELAY_MS / 1000f;
+                        if (liuyaoScrollIsClockwise) {
+                            step = -step;
+                        }
                         for (int k = 0; k < 6; k++) {
                             if (k < liuyaoRollCount) {
                                 liuyaoRingAngles[k] += liuyaoRingDirections[k] * step;
@@ -618,7 +625,7 @@ public class MainActivity extends Activity {
                         if (child instanceof LiuyaoDrawScreenView) {
                             ((LiuyaoDrawScreenView) child).updateText();
                         }
-                        mSafeContainer.postDelayed(this, 50);
+                        mSafeContainer.postDelayed(this, LIUYAO_ANIMATION_FRAME_DELAY_MS);
                     }
                 }
             };
@@ -669,7 +676,7 @@ public class MainActivity extends Activity {
                             };
                             mSafeContainer.postDelayed(pendingCommitRunnable, 1500);
                         } else {
-                            mSafeContainer.postDelayed(this, 50);
+                            mSafeContainer.postDelayed(this, LIUYAO_ANIMATION_FRAME_DELAY_MS);
                         }
                     }
                 }

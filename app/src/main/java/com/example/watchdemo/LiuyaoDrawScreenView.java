@@ -20,27 +20,6 @@ public class LiuyaoDrawScreenView extends View {
     private final android.graphics.RectF mRingRect = new android.graphics.RectF();
     private final android.graphics.RectF mShakeRect = new android.graphics.RectF();
 
-    private long lastTime = 0L;
-
-    private final Runnable taijiRotateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isShown() && getWindowVisibility() == VISIBLE && 
-                activity.liuyaoRollCount == 0 && !activity.isCoinsRolling && !activity.isShowingCoinResult) {
-                long now = System.currentTimeMillis();
-                if (lastTime > 0) {
-                    long dt = now - lastTime;
-                    taijiAngle = (taijiAngle + 0.024f * dt) % 360f; // 24度每秒
-                }
-                lastTime = now;
-                postInvalidateOnAnimation();
-                postOnAnimation(this);
-            } else {
-                lastTime = 0L;
-            }
-        }
-    };
-
     public LiuyaoDrawScreenView(MainActivity activity) {
         super(activity);
         this.activity = activity;
@@ -48,47 +27,6 @@ public class LiuyaoDrawScreenView extends View {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        removeCallbacks(taijiRotateRunnable);
-        lastTime = 0L;
-        postOnAnimation(taijiRotateRunnable);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        removeCallbacks(taijiRotateRunnable);
-        lastTime = 0L;
-        super.onDetachedFromWindow();
-    }
-
-    @Override
-    protected void onVisibilityChanged(View changedView, int visibility) {
-        super.onVisibilityChanged(changedView, visibility);
-        if (visibility == VISIBLE) {
-            removeCallbacks(taijiRotateRunnable);
-            lastTime = 0L;
-            postOnAnimation(taijiRotateRunnable);
-        } else {
-            removeCallbacks(taijiRotateRunnable);
-            lastTime = 0L;
-        }
-    }
-
-    @Override
-    protected void onWindowVisibilityChanged(int visibility) {
-        super.onWindowVisibilityChanged(visibility);
-        if (visibility == VISIBLE) {
-            removeCallbacks(taijiRotateRunnable);
-            lastTime = 0L;
-            postOnAnimation(taijiRotateRunnable);
-        } else {
-            removeCallbacks(taijiRotateRunnable);
-            lastTime = 0L;
-        }
     }
 
     public void updateText() {

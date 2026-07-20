@@ -1,2 +1,0 @@
--keep class com.example.watchdemo.MainActivity { <init>(); }
--keep class com.example.watchdemo.SubActivity { <init>(); }

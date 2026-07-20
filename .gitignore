@@ -1,2 +1,7 @@
 .gradle/
-build/
+# Gradle/Android generated output (at every module level)
+**/build/
+
+# Machine-local SDK and signing configuration
+local.properties
+*.jks

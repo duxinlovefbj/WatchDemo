@@ -41,11 +41,42 @@ public class TarotDrawScreenView extends FrameLayout {
 
     private int lastVibratedIndex = -1;
     private long lastCrownScrollTime = 0;
+    // 表冠滑牌使用独立的 30fps 帧循环，避免 ValueAnimator 仍按屏幕刷新率唤醒。
+    private static final long SCROLL_FRAME_DELAY_MS = 33L;
+    private boolean scrollAnimationRunning = false;
+    private long scrollAnimationStartTime = 0L;
+    private long scrollAnimationDuration = 0L;
+    private float scrollAnimationStartProgress = 0f;
+    private float scrollAnimationEndProgress = 0f;
+    private final Runnable scrollFrameRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!scrollAnimationRunning) {
+                return;
+            }
+
+            long elapsed = android.os.SystemClock.uptimeMillis() - scrollAnimationStartTime;
+            float fraction = scrollAnimationDuration <= 0L
+                    ? 1f
+                    : Math.min(1f, elapsed / (float) scrollAnimationDuration);
+            // DecelerateInterpolator(1.5f) 的等价计算，保持原 ValueAnimator 的手感。
+            float eased = 1f - (float) Math.pow(1f - fraction, 3f);
+            cardProgress = scrollAnimationStartProgress
+                    + (scrollAnimationEndProgress - scrollAnimationStartProgress) * eased;
+            updateCardPositions(cardProgress, 0f);
+
+            if (fraction >= 1f) {
+                cardProgress = scrollAnimationEndProgress;
+                scrollAnimationRunning = false;
+                return;
+            }
+            postDelayed(this, SCROLL_FRAME_DELAY_MS);
+        }
+    };
     private boolean isDragging = false;
     private float dragStartX = 0f;
     private float dragStartProgress = 0f;
 
-    private ValueAnimator scrollAnimator = null;
     private ValueAnimator drawAnimator = null;
     private final View[] cardViews = new View[9];
 
@@ -582,7 +613,7 @@ public class TarotDrawScreenView extends FrameLayout {
             return;
 
         // 如果滚动动画没有在运行，将目标进度同步为当前卡片进度
-        if (scrollAnimator == null || !scrollAnimator.isRunning()) {
+        if (!scrollAnimationRunning) {
             targetProgress = cardProgress;
         }
 
@@ -612,9 +643,7 @@ public class TarotDrawScreenView extends FrameLayout {
     }
 
     private void animateScrollTo(float targetProgressVal) {
-        if (scrollAnimator != null) {
-            scrollAnimator.cancel();
-        }
+        cancelScrollAnimation();
 
         int S = activity.availableTarotCards.size();
         if (S <= 0)
@@ -626,28 +655,25 @@ public class TarotDrawScreenView extends FrameLayout {
         // 在绝对坐标系下，不需要任何 S/2 的环形调整，物理间距就是 algebraic difference
         float diff = end - start;
 
-        final float finalEnd = end;
-        targetProgress = finalEnd;
-        scrollAnimator = ValueAnimator.ofFloat(start, finalEnd);
-        scrollAnimator.setInterpolator(new DecelerateInterpolator(1.5f)); // 减速阻尼，与系统 OverScroller 体感一致
-        
         // 根据滚动距离动态调整动画持续时间，设置更轻快敏捷的 90ms 基础过渡时间
         int duration = 90;
         float absDiff = Math.abs(diff);
         if (absDiff > 1.0f) {
             duration = 90 + (int) ((absDiff - 1.0f) * 40);
         }
-        scrollAnimator.setDuration(duration);
 
-        scrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float val = (float) animation.getAnimatedValue();
-                cardProgress = val;
-                updateCardPositions(cardProgress, 0f);
-            }
-        });
-        scrollAnimator.start();
+        targetProgress = end;
+        scrollAnimationStartProgress = start;
+        scrollAnimationEndProgress = end;
+        scrollAnimationDuration = duration;
+        scrollAnimationStartTime = android.os.SystemClock.uptimeMillis();
+        scrollAnimationRunning = true;
+        post(scrollFrameRunnable);
+    }
+
+    private void cancelScrollAnimation() {
+        scrollAnimationRunning = false;
+        removeCallbacks(scrollFrameRunnable);
     }
 
     public void startDrawAnimation() {
@@ -663,9 +689,7 @@ public class TarotDrawScreenView extends FrameLayout {
         // 随机选择左侧或者右侧闭合补齐
         fillFromLeft = Math.random() > 0.5;
 
-        if (scrollAnimator != null) {
-            scrollAnimator.cancel();
-        }
+        cancelScrollAnimation();
 
         drawAnimator = ValueAnimator.ofFloat(0f, 1f);
         drawAnimator.setInterpolator(new DecelerateInterpolator(1.5f));
@@ -709,9 +733,7 @@ public class TarotDrawScreenView extends FrameLayout {
                 dragStartX = event.getX();
                 dragStartProgress = cardProgress;
                 isDragging = false;
-                if (scrollAnimator != null && scrollAnimator.isRunning()) {
-                    scrollAnimator.cancel();
-                }
+                cancelScrollAnimation();
                 super.dispatchTouchEvent(event);
                 return true;
 
@@ -722,9 +744,7 @@ public class TarotDrawScreenView extends FrameLayout {
                 float dx = event.getX() - dragStartX;
                 if (!isDragging && Math.abs(dx) > 8 * activity.density) {
                     isDragging = true;
-                    if (scrollAnimator != null && scrollAnimator.isRunning()) {
-                        scrollAnimator.cancel();
-                    }
+                    cancelScrollAnimation();
                     MotionEvent cancelEvent = MotionEvent.obtain(event);
                     cancelEvent.setAction(MotionEvent.ACTION_CANCEL);
                     super.dispatchTouchEvent(cancelEvent);
@@ -767,5 +787,15 @@ public class TarotDrawScreenView extends FrameLayout {
         }
 
         return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        // 页面离开时停止手动帧循环，避免旧页面继续唤醒 UI 线程。
+        cancelScrollAnimation();
+        if (glowAnimator != null) {
+            glowAnimator.cancel();
+        }
+        super.onDetachedFromWindow();
     }
 }
