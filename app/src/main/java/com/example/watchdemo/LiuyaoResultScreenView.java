@@ -269,7 +269,7 @@ public class LiuyaoResultScreenView extends View {
 
         // 3. 计算当前的起卦排盘信息
         LiuyaoCalculator.Result res = LiuyaoCalculator.calculate(activity.liuyaoLineResults);
-        LiuyaoCalculator.LunarInfo lunar = LiuyaoCalculator.getLunarInfo(activity.appStartTime);
+        LiuyaoCalculator.LunarInfo lunar = LiuyaoCalculator.getLunarInfo(resultTimeMillis());
         LiuyaoCalculator.HexagramDetails benDetails = LiuyaoCalculator.calculateDetails(activity.liuyaoLineResults, -1, lunar.dayGan);
         LiuyaoCalculator.HexagramDetails activeDetails = activity.liuyaoResultShowChanged ?
                 LiuyaoCalculator.calculateDetails(res.zhiGua, benDetails.palaceElement, lunar.dayGan) : benDetails;
@@ -560,7 +560,7 @@ public class LiuyaoResultScreenView extends View {
 
         // 1. Left Side: Solar Calendar (Clockwise from 140 to 220)
         java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.setTimeInMillis(activity.appStartTime);
+        cal.setTimeInMillis(resultTimeMillis());
         String sYear = cal.get(java.util.Calendar.YEAR) + "年";
         String sMonth = String.format(java.util.Locale.getDefault(), "%02d月", cal.get(java.util.Calendar.MONTH) + 1);
         String sDay = String.format(java.util.Locale.getDefault(), "%02d日", cal.get(java.util.Calendar.DAY_OF_MONTH));
@@ -571,7 +571,7 @@ public class LiuyaoResultScreenView extends View {
         drawColoredArcText(canvas, leftPath, pathLength, sYear, colorYear, sMonth, colorMonth, sDay, colorDay, sHour, colorHour, paint);
 
         // 2. Right Side: Lunar Calendar / Shichen (Clockwise from -40 to 40)
-        LiuyaoCalculator.LunarInfo lunar = LiuyaoCalculator.getLunarInfo(activity.appStartTime);
+        LiuyaoCalculator.LunarInfo lunar = LiuyaoCalculator.getLunarInfo(resultTimeMillis());
         String lYear = lunar.yearGanZhi + "年";
         String lMonth = lunar.monthGanZhi + "月";
         String lDay = lunar.dayGanZhi + "日";
@@ -580,6 +580,11 @@ public class LiuyaoResultScreenView extends View {
         Path rightPath = new Path();
         rightPath.addArc(oval, -40f, sweepAngle);
         drawColoredArcText(canvas, rightPath, pathLength, lYear, colorYear, lMonth, colorMonth, lDay, colorDay, lHour, colorHour, paint);
+    }
+
+    private long resultTimeMillis() {
+        return activity.liuyaoResultTimeMillis > 0L
+                ? activity.liuyaoResultTimeMillis : activity.appStartTime;
     }
 
     private void drawColoredArcText(Canvas canvas, Path path, float pathLength, 

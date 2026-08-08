@@ -55,16 +55,16 @@ final class HistoryManager {
         });
     }
 
-    void addLiuyao(int[] lineResults, LiuyaoInsertCallback callback) {
+    void addLiuyao(int[] lineResults, long createdAt, LiuyaoInsertCallback callback) {
         int[] values = lineResults.clone();
-        String display = today() + " " + liuyaoName(values);
+        String display = date(createdAt) + " " + liuyaoName(values);
         executor.execute(() -> {
             ContentValues row = new ContentValues();
             row.put("display_str", display);
             row.put("line_results", join(values));
-            row.put("create_time", System.currentTimeMillis());
+            row.put("create_time", createdAt);
             long id = insert("liuyao_history", row);
-            callback.onInserted(new LiuyaoHistoryItem(id, display, values));
+            callback.onInserted(new LiuyaoHistoryItem(id, display, values, createdAt));
         });
     }
 
@@ -120,9 +120,10 @@ final class HistoryManager {
             int id = cursor.getColumnIndexOrThrow("id");
             int display = cursor.getColumnIndexOrThrow("display_str");
             int results = cursor.getColumnIndexOrThrow("line_results");
+            int createdAt = cursor.getColumnIndexOrThrow("create_time");
             while (cursor.moveToNext()) {
                 output.add(new LiuyaoHistoryItem(cursor.getLong(id), cursor.getString(display),
-                        parseInts(cursor.getString(results))));
+                        parseInts(cursor.getString(results)), cursor.getLong(createdAt)));
             }
         }
     }
@@ -184,6 +185,10 @@ final class HistoryManager {
 
     private static String today() {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    private static String date(long timestamp) {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date(timestamp));
     }
 
     private static int[] parseInts(String value) {

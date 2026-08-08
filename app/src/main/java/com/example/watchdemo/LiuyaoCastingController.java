@@ -128,6 +128,7 @@ final class LiuyaoCastingController {
             activity.mSafeContainer.postDelayed(() -> {
                 if (activity.currentScreen == MainActivity.ScreenState.LIUYAO_DRAW) {
                     activity.selectedHexagramLineIndex = 0;
+                    activity.liuyaoResultTimeMillis = System.currentTimeMillis();
                     activity.addLiuyaoHistory();
                     activity.currentScreen = MainActivity.ScreenState.LIUYAO_RESULT;
                     activity.renderScreen();

@@ -68,6 +68,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
                 if (!activity.liuyaoHistoryList.isEmpty() && activity.historySelectedIndex < activity.liuyaoHistoryList.size()) {
                     LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(activity.historySelectedIndex);
                     activity.liuyaoLineResults = item.lineResults.clone();
+                    activity.liuyaoResultTimeMillis = item.createdAt;
                     activity.selectedHexagramLineIndex = 0;
                     activity.currentScreen = MainActivity.ScreenState.LIUYAO_RESULT;
                     activity.liuyaoResultSubPage = 0;

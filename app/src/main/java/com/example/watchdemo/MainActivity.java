@@ -87,6 +87,7 @@ public class MainActivity extends Activity {
 
     // 随机化种子与变量
     public long appStartTime = 0L;
+    public long liuyaoResultTimeMillis = 0L;
     // 塔罗结果状态
     int tarotResultLayer = 1; // 1 = 牌阵全景, 2 = 单牌详情
     int tarotResultDetailIndex = 0;
@@ -473,7 +474,8 @@ public class MainActivity extends Activity {
     }
 
     public void addLiuyaoHistory() {
-        historyManager.addLiuyao(liuyaoLineResults, item -> runOnUiThread(() -> {
+        historyManager.addLiuyao(liuyaoLineResults, liuyaoResultTimeMillis,
+                item -> runOnUiThread(() -> {
             liuyaoHistoryList.add(0, item);
             saveHistory();
         }));
