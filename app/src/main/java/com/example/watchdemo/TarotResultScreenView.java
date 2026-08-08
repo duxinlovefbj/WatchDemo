@@ -4,8 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -23,11 +21,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import java.io.InputStream;
 
 public class TarotResultScreenView extends FrameLayout {
     private final MainActivity activity;
-    private Bitmap[] cardBitmaps;
+    private final TarotBitmapStore bitmapStore = new TarotBitmapStore();
 
     // 三层级视图结构
     private FrameLayout layer1Layout;    // Layer 1: 牌阵全景
@@ -72,25 +69,7 @@ public class TarotResultScreenView extends FrameLayout {
     }
 
     private void loadBitmaps() {
-        int drawnCount = activity.tarotDrawnCount;
-        if (cardBitmaps == null || cardBitmaps.length != drawnCount) {
-            cardBitmaps = new Bitmap[drawnCount];
-        }
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = 2;
-        for (int i = 0; i < drawnCount; i++) {
-            if (cardBitmaps[i] == null || cardBitmaps[i].isRecycled()) {
-                int cardIdx = activity.tarotDrawnIndices[i];
-                String filename = TarotDeck.getCardFilename(cardIdx);
-                try {
-                    InputStream is = activity.getAssets().open("image/" + filename);
-                    cardBitmaps[i] = BitmapFactory.decodeStream(is, null, options);
-                    is.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        bitmapStore.load(activity.getAssets(), activity.tarotDrawnIndices, activity.tarotDrawnCount);
     }
 
     private void updateSwipeBackState() {
@@ -268,8 +247,8 @@ public class TarotResultScreenView extends FrameLayout {
             ImageView ivCardBack = card.findViewById(R.id.iv_card_back);
             View vFallback = card.findViewById(R.id.v_card_fallback);
 
-            if (i < cardBitmaps.length && cardBitmaps[i] != null) {
-                ivCardBack.setImageBitmap(cardBitmaps[i]);
+            if (bitmapStore.get(i) != null) {
+                ivCardBack.setImageBitmap(bitmapStore.get(i));
                 ivCardBack.setVisibility(View.VISIBLE);
                 vFallback.setVisibility(View.GONE);
             } else {
@@ -367,43 +346,7 @@ public class TarotResultScreenView extends FrameLayout {
      */
     private void layoutDetail(int w, int h) {
         if (activity.tarotDrawnCount == 0 || activity.tarotResultDetailIndex >= activity.tarotDrawnCount) return;
-
-        int cardIdx = activity.tarotDrawnIndices[activity.tarotResultDetailIndex];
-        TarotDeck.TarotCard card = TarotDeck.TAROT_DECK[cardIdx];
-        boolean isUpright = activity.tarotCardStates[activity.tarotResultDetailIndex];
-
-        ImageView ivCardBack = detailCardView.findViewById(R.id.iv_card_back);
-        View vFallback = detailCardView.findViewById(R.id.v_card_fallback);
-
-        if (activity.tarotResultDetailIndex < cardBitmaps.length && cardBitmaps[activity.tarotResultDetailIndex] != null) {
-            ivCardBack.setImageBitmap(cardBitmaps[activity.tarotResultDetailIndex]);
-            ivCardBack.setVisibility(View.VISIBLE);
-            vFallback.setVisibility(View.GONE);
-        } else {
-            ivCardBack.setVisibility(View.GONE);
-            vFallback.setVisibility(View.VISIBLE);
-        }
-
-        View border = detailCardView.findViewById(R.id.v_card_border);
-        if (border != null) {
-            GradientDrawable borderDrawable = (GradientDrawable) border.getBackground();
-            if (borderDrawable != null) {
-                borderDrawable.setStroke((int) (1.8f * activity.density), Color.parseColor("#D4AF37"));
-            }
-        }
-
-        boolean isRotated90 = (activity.tarotArraySelectedIndex == 4 && activity.tarotResultDetailIndex == 1);
-        boolean isRotated25 = (activity.tarotArraySelectedIndex == 12 && activity.tarotResultDetailIndex == 5);
-        float rot = isUpright ? 0f : 180f;
-        if (isRotated90) rot += 90f;
-        if (isRotated25) rot += 25f;
-        detailCardView.setRotation(rot);
-
-        // 显示牌面解释以及其对应的牌阵位置
-        String meaningText = isUpright ? card.upright : card.reversed;
-        detailTextView.setText(meaningText);
-        String positionText = getCardPositionNameAndMeaning(activity.tarotResultDetailIndex, activity.tarotTargetCount);
-        positionTextView.setText(positionText);
+        bindDetailCard();
 
         detailCardView.setOnClickListener(new OnClickListener() {
             @Override
@@ -753,353 +696,17 @@ public class TarotResultScreenView extends FrameLayout {
     /**
      * 根据当前选中的卡牌以及牌阵类型，获取该卡牌在牌阵中的位置名称与位置含义
      */
-    private String getCardPositionNameAndMeaning(int index, int targetCount) {
-        int arrayIdx = activity.tarotArraySelectedIndex;
-        if (arrayIdx == 1) { // 圣三角
-            switch (index) {
-                case 0: return "过去";
-                case 1: return "现在";
-                case 2: return "未来";
-            }
-        } else if (arrayIdx == 2) { // 六芒星
-            switch (index) {
-                case 0: return "核心问题";
-                case 1: return "过去原因";
-                case 2: return "当前状态";
-                case 3: return "未来趋势";
-                case 4: return "环境影响";
-                case 5: return "内心期望";
-                case 6: return "解决建议";
-            }
-        } else if (arrayIdx == 3) { // 时间之箭
-            switch (index) {
-                case 0: return "遥远的过去";
-                case 1: return "近期过去";
-                case 2: return "现在";
-                case 3: return "近期未来";
-                case 4: return "遥远未来";
-            }
-        } else if (arrayIdx == 4) { // 凯尔特十字
-            switch (index) {
-                case 0: return "现状";
-                case 1: return "阻碍";
-                case 2: return "潜意识";
-                case 3: return "过去";
-                case 4: return "意识";
-                case 5: return "未来";
-                case 6: return "自我";
-                case 7: return "环境";
-                case 8: return "希望或恐惧";
-                case 9: return "最终结果";
-            }
-        } else if (arrayIdx == 5) { // 四元素
-            switch (index) {
-                case 0: return "火：热情行动";
-                case 1: return "水：直觉情感";
-                case 2: return "风：理性沟通";
-                case 3: return "土：实际稳定";
-            }
-        } else if (arrayIdx == 6) { // 二选一
-            switch (index) {
-                case 0: return "起点：当前处境";
-                case 1: return "A优：正面影响";
-                case 2: return "B优：正面影响";
-                case 3: return "A劣：负面影响";
-                case 4: return "B劣：负面影响";
-            }
-        } else if (arrayIdx == 7) { // 金字塔
-            switch (index) {
-                case 0: return "基础左：起点";
-                case 1: return "基础中：动力";
-                case 2: return "基础右：环境";
-                case 3: return "实现：行动方式";
-                case 4: return "成就：最终结果";
-                case 5: return "过程：发展挑战";
-                case 6: return "上左：关键因素";
-                case 7: return "过程：发展机会";
-                case 8: return "上右：整合元素";
-            }
-        } else if (arrayIdx == 8) { // 七脉轮
-            switch (index) {
-                case 0: return "海底轮：安全";
-                case 1: return "脐轮：创造";
-                case 2: return "太阳轮：力量";
-                case 3: return "心轮：同理";
-                case 4: return "喉轮：表达";
-                case 5: return "眉心轮：智慧";
-                case 6: return "顶轮：觉知";
-            }
-        } else if (arrayIdx == 9) { // 直击问题
-            switch (index) {
-                case 0: return "原因：问题起源";
-                case 1: return "现状：实际情况";
-                case 2: return "影响：关键力量";
-                case 3: return "解决：突破建议";
-            }
-        } else if (arrayIdx == 10) { // 指引之星
-            switch (index) {
-                case 0: return "核心：灵魂使命";
-                case 1: return "过去：需要放下";
-                case 2: return "资源：内在天赋";
-                case 3: return "未来：需要迎接";
-                case 4: return "机会：外在助力";
-                case 5: return "行动：落方向";
-                case 6: return "指引：高我讯息";
-            }
-        } else if (arrayIdx == 11) { // 财务
-            switch (index) {
-                case 0: return "财务：金钱现况";
-                case 1: return "收入：流入管道";
-                case 2: return "支出：金钱流出";
-                case 3: return "障碍：风险注意";
-                case 4: return "建议：财务健康";
-            }
-        } else if (arrayIdx == 12) { // 人际关系
-            switch (index) {
-                case 0: return "自我：真实感受";
-                case 1: return "对方：想法感受";
-                case 2: return "优势：正面特质";
-                case 3: return "挑战：面对问题";
-                case 4: return "氛围：互动模式";
-                case 5: return "建议：关系改善";
-            }
-        }
-        return "第 " + (index + 1) + " 张牌";
+    private String getCardPositionNameAndMeaning(int index) {
+        return TarotSpreadMetadata.positionLabel(activity.tarotArraySelectedIndex, index);
     }
 
     /**
      * 获取指定索引卡牌的原始虚拟空间坐标
      */
-    private float[] getRawVirtualCoords(int k, int targetCount, int drawnCount) {
-        float vx = 0f;
-        float vy = 0f;
-        int arrayIdx = activity.tarotArraySelectedIndex;
-        
-        if (arrayIdx == 1) { // 圣三角
-            vx = (k - 1) * 52f;
-            vy = 0f;
-        } else if (arrayIdx == 3) { // 时间之箭 (originally 5 cards)
-            vx = (k - 2) * 44f;
-            vy = 0f;
-        } else if (arrayIdx == 2) { // 六芒星
-            if (k == 0) {
-                vx = 0f;
-                vy = 0f;
-            } else {
-                double angle = (k - 1) * Math.PI / 3f - Math.PI / 2f;
-                vx = (float) Math.cos(angle) * 50f;
-                vy = (float) Math.sin(angle) * 50f;
-            }
-        } else if (arrayIdx == 4) { // 凯尔特十字
-            float crossCx = 0f;
-            float crossCy = 0f;
-            float staffCx = 104f; // 扩大横坐标偏置以防重叠
-            float dx = 48f;      // 扩大水平间距
-            float dy = 58f;      // 扩大垂直间距
-            switch (k) {
-                case 0: vx = crossCx; vy = crossCy; break;
-                case 1: vx = crossCx; vy = crossCy; break;
-                case 2: vx = crossCx; vy = crossCy + dy; break;
-                case 3: vx = crossCx - dx; vy = crossCy; break;
-                case 4: vx = crossCx; vy = crossCy - dy; break;
-                case 5: vx = crossCx + dx; vy = crossCy; break;
-                case 6: vx = staffCx; vy = crossCy + 1.5f * dy; break;
-                case 7: vx = staffCx; vy = crossCy + 0.5f * dy; break;
-                case 8: vx = staffCx; vy = crossCy - 0.5f * dy; break;
-                case 9: vx = staffCx; vy = crossCy - 1.5f * dy; break;
-            }
-        } else if (arrayIdx == 5) { // 四元素 (4 cards)
-            float dx = 32f;
-            float dy = 36f;
-            switch (k) {
-                case 0: vx = -dx; vy = dy; break;  // 1: bottom-left
-                case 1: vx = dx; vy = -dy; break;  // 2: top-right
-                case 2: vx = dx; vy = dy; break;   // 3: bottom-right
-                case 3: vx = -dx; vy = -dy; break;  // 4: top-left
-            }
-        } else if (arrayIdx == 6) { // 二选一 (5 cards)
-            float dx = 38f;
-            float dy = 46f;
-            switch (k) {
-                case 0: vx = 0f; vy = dy; break;    // 1: bottom center
-                case 1: vx = -dx; vy = 0f; break;   // 2: middle left
-                case 2: vx = dx; vy = 0f; break;    // 3: middle right
-                case 3: vx = -dx; vy = -dy; break;  // 4: top left
-                case 4: vx = dx; vy = -dy; break;   // 5: top right
-            }
-        } else if (arrayIdx == 7) { // 金字塔 (9 cards)
-            float dx = 36f;
-            float dy = 32f;
-            switch (k) {
-                case 0: vx = -dx; vy = dy; break;        // 1: bottom left
-                case 1: vx = 0f; vy = dy; break;         // 2: bottom center
-                case 2: vx = dx; vy = dy; break;         // 3: bottom right
-                case 3: vx = 0f; vy = 0f; break;         // 4: middle center
-                case 4: vx = 0f; vy = -2f * dy; break;   // 5: apex
-                case 5: vx = -1.5f * dx; vy = 0f; break; // 6: far left
-                case 6: vx = -0.7f * dx; vy = -dy; break;// 7: upper left
-                case 7: vx = 1.5f * dx; vy = 0f; break;  // 8: far right
-                case 8: vx = 0.7f * dx; vy = -dy; break; // 9: upper right
-            }
-        } else if (arrayIdx == 8) { // 七脉轮 (7 cards vertical stack from bottom to top)
-            float dy = 24f;
-            vx = 0f;
-            vy = (3 - k) * dy;
-        } else if (arrayIdx == 9) { // 直击问题 (4 cards diamond)
-            float dx = 42f;
-            float dy = 46f;
-            switch (k) {
-                case 0: vx = 0f; vy = -dy; break; // 1: top
-                case 1: vx = -dx; vy = 0f; break; // 2: left
-                case 2: vx = 0f; vy = dy; break;  // 3: bottom
-                case 3: vx = dx; vy = 0f; break;  // 4: right
-            }
-        } else if (arrayIdx == 10) { // 指引之星 (7 cards)
-            float dx = 38f;
-            float dy = 52f;
-            switch (k) {
-                case 0: vx = 0f; vy = 0f; break;          // 1: Center
-                case 1: vx = -dx; vy = -dy / 2f; break;   // 2: Left
-                case 2: vx = -dx; vy = dy / 2f; break;    // 3: Left-bottom
-                case 3: vx = dx; vy = -dy / 2f; break;    // 4: Right
-                case 4: vx = dx; vy = dy / 2f; break;     // 5: Right-bottom
-                case 5: vx = 0f; vy = dy; break;          // 6: Bottom
-                case 6: vx = 0f; vy = -dy; break;         // 7: Top
-            }
-        } else if (arrayIdx == 11) { // 财务 (5 cards cross)
-            float dx = 42f;
-            float dy = 46f;
-            switch (k) {
-                case 0: vx = 0f; vy = dy; break;   // 1: bottom
-                case 1: vx = 0f; vy = 0f; break;   // 2: center
-                case 2: vx = dx; vy = 0f; break;   // 3: right
-                case 3: vx = -dx; vy = 0f; break;  // 4: left
-                case 4: vx = 0f; vy = -dy; break;  // 5: top
-            }
-        } else if (arrayIdx == 12) { // 人际关系 (6 cards cross with overlapping card 6)
-            float dx = 42f;
-            float dy = 46f;
-            switch (k) {
-                case 0: vx = 0f; vy = dy; break;          // 1: bottom
-                case 1: vx = 0f; vy = -dy; break;         // 2: top
-                case 2: vx = -dx; vy = 0f; break;         // 3: left
-                case 3: vx = 0f; vy = 0f; break;          // 4: center
-                case 4: vx = dx; vy = 0f; break;          // 5: right
-                case 5: vx = 14f; vy = 12f; break;        // 6: bottom-right overlap (rotated 25 deg)
-            }
-        } else { // Grid / -1 (自由抽牌等)
-            int cols = 3;
-            int columns = Math.min(drawnCount, cols);
-            int rows = (drawnCount + cols - 1) / cols;
-            float vGridW = columns * 46f + (columns - 1) * 12f;
-            float vGridH = rows * 80f + (rows - 1) * 12f;
-
-            int col = k % cols;
-            int row = k / cols;
-            vx = col * (46f + 12f) - vGridW / 2f + 46f / 2f;
-            vy = row * (80f + 12f) - vGridH / 2f + 80f / 2f;
-        }
-        return new float[]{vx, vy};
-    }
-
-    /**
-     * 将整个牌阵视为整体，利用虚拟坐标空间包围盒进行等比缩放定位与卡牌尺寸动态计算
-     */
     public float[] getVirtualCardCenterAndSize(int i, int targetCount, int drawnCount, int w, int h) {
-        float vCardW = 46f;
-        float vCardH = 80f;
-
-        if (drawnCount <= 0) {
-            return new float[]{w / 2f, h / 2f, vCardW * activity.density, vCardH * activity.density};
-        }
-
-        // 1. 计算卡牌间不重叠的最小虚拟尺寸因子 f (除了凯尔特十字的 0 号和 1 号牌)
-        float f = 1.0f;
-        for (int a = 0; a < drawnCount; a++) {
-            for (int b = a + 1; b < drawnCount; b++) {
-                if (activity.tarotArraySelectedIndex == 4 && ((a == 0 && b == 1) || (a == 1 && b == 0))) {
-                    continue;
-                }
-
-                float[] coordsA = getRawVirtualCoords(a, targetCount, drawnCount);
-                float[] coordsB = getRawVirtualCoords(b, targetCount, drawnCount);
-
-                float Wa = (activity.tarotArraySelectedIndex == 4 && a == 1) ? 80f : 46f;
-                float Ha = (activity.tarotArraySelectedIndex == 4 && a == 1) ? 46f : 80f;
-
-                float Wb = (activity.tarotArraySelectedIndex == 4 && b == 1) ? 80f : 46f;
-                float Hb = (activity.tarotArraySelectedIndex == 4 && b == 1) ? 46f : 80f;
-
-                float dx_val = Math.abs(coordsA[0] - coordsB[0]);
-                float dy_val = Math.abs(coordsA[1] - coordsB[1]);
-
-                float limitX = (Wa + Wb) / 2f;
-                float limitY = (Ha + Hb) / 2f;
-
-                float f_pair = Math.max(dx_val / limitX, dy_val / limitY);
-                if (f_pair < f) {
-                    f = f_pair;
-                }
-            }
-        }
-
-        // 2. 计算当前卡牌的原始虚拟坐标
-        float[] currentCoords = getRawVirtualCoords(i, targetCount, drawnCount);
-        float vx = currentCoords[0];
-        float vy = currentCoords[1];
-
-        // 3. 遍历所有已抽取卡牌，利用外接矩形计算极值
-        float minX = Float.MAX_VALUE;
-        float maxX = -Float.MAX_VALUE;
-        float minY = Float.MAX_VALUE;
-        float maxY = -Float.MAX_VALUE;
-
-        for (int k = 0; k < drawnCount; k++) {
-            float[] coords = getRawVirtualCoords(k, targetCount, drawnCount);
-            float cx = coords[0];
-            float cy = coords[1];
-            float Wk = ((activity.tarotArraySelectedIndex == 4 && k == 1) ? 80f : 46f) * f;
-            float Hk = ((activity.tarotArraySelectedIndex == 4 && k == 1) ? 46f : 80f) * f;
-
-            if (cx - Wk / 2f < minX) minX = cx - Wk / 2f;
-            if (cx + Wk / 2f > maxX) maxX = cx + Wk / 2f;
-            if (cy - Hk / 2f < minY) minY = cy - Hk / 2f;
-            if (cy + Hk / 2f > maxY) maxY = cy + Hk / 2f;
-        }
-
-        // 4. 计算虚拟几何中心 (vCx, vCy)，用以将整个布局数学对中
-        float vCx = (minX + maxX) / 2f;
-        float vCy = (minY + maxY) / 2f;
-
-        // 减去几何中心偏移量，实现完美对中
-        float vxAdj = vx - vCx;
-        float vyAdj = vy - vCy;
-
-        // 动态计算虚拟包围盒尺寸
-        float vSpreadW = maxX - minX;
-        float vSpreadH = maxY - minY;
-
-        // 5. 以屏幕 65% 作为安全可交互包围区域
-        float targetW = w * 0.65f;
-        float targetH = h * 0.65f;
-        float scale = Math.min(targetW / vSpreadW, targetH / vSpreadH);
-
-        // 限制最大单张卡牌缩放比例，防止过少卡牌时过度拉伸，导致边缘超出圆形屏
-        float maxScale = 1.15f * activity.density;
-        if (scale > maxScale) {
-            scale = maxScale;
-        }
-
-        // 6. 换算物理像素位置
-        float cx = w / 2f + vxAdj * scale;
-        // 把牌阵整体垂直向下微调 12dp，避开顶部标题
-        float cy = h / 2f + vyAdj * scale + (12f * activity.density);
-        float cardW = vCardW * scale * f;
-        float cardH = vCardH * scale * f;
-
-        return new float[]{cx, cy, cardW, cardH};
+        return TarotSpreadLayoutCalculator.cardBounds(
+                activity.tarotArraySelectedIndex, i, drawnCount, w, h, activity.density);
     }
-
     public int getCardIndexAt(float x, float y) {
         int w = getWidth();
         int h = getHeight();
@@ -1206,7 +813,11 @@ public class TarotResultScreenView extends FrameLayout {
 
     private void updateDetailCard() {
         if (activity.tarotDrawnCount == 0 || activity.tarotResultDetailIndex >= activity.tarotDrawnCount) return;
+        bindDetailCard();
+        invalidate();
+    }
 
+    private void bindDetailCard() {
         int cardIdx = activity.tarotDrawnIndices[activity.tarotResultDetailIndex];
         TarotDeck.TarotCard card = TarotDeck.TAROT_DECK[cardIdx];
         boolean isUpright = activity.tarotCardStates[activity.tarotResultDetailIndex];
@@ -1214,8 +825,8 @@ public class TarotResultScreenView extends FrameLayout {
         ImageView ivCardBack = detailCardView.findViewById(R.id.iv_card_back);
         View vFallback = detailCardView.findViewById(R.id.v_card_fallback);
 
-        if (activity.tarotResultDetailIndex < cardBitmaps.length && cardBitmaps[activity.tarotResultDetailIndex] != null) {
-            ivCardBack.setImageBitmap(cardBitmaps[activity.tarotResultDetailIndex]);
+        if (bitmapStore.get(activity.tarotResultDetailIndex) != null) {
+            ivCardBack.setImageBitmap(bitmapStore.get(activity.tarotResultDetailIndex));
             ivCardBack.setVisibility(View.VISIBLE);
             vFallback.setVisibility(View.GONE);
         } else {
@@ -1239,14 +850,10 @@ public class TarotResultScreenView extends FrameLayout {
         if (isRotated25) rot += 25f;
         detailCardView.setRotation(rot);
 
-        // 更新释义大文本，包含位置
         String meaningText = isUpright ? card.upright : card.reversed;
         detailTextView.setText(meaningText);
-        String positionText = getCardPositionNameAndMeaning(activity.tarotResultDetailIndex, activity.tarotTargetCount);
+        String positionText = getCardPositionNameAndMeaning(activity.tarotResultDetailIndex);
         positionTextView.setText(positionText);
-
-        // 重绘置顶霓虹发光圈
-        invalidate();
     }
 
     @Override
@@ -1258,14 +865,7 @@ public class TarotResultScreenView extends FrameLayout {
             dismissAnimator.cancel();
         }
         // 主动回收 Bitmap 像素内存，杜绝内存泄漏和手表息屏后被后台杀死重启的 Bug
-        if (cardBitmaps != null) {
-            for (int i = 0; i < cardBitmaps.length; i++) {
-                if (cardBitmaps[i] != null && !cardBitmaps[i].isRecycled()) {
-                    cardBitmaps[i].recycle();
-                }
-                cardBitmaps[i] = null;
-            }
-        }
+        bitmapStore.recycle();
         super.onDetachedFromWindow();
     }
 }
