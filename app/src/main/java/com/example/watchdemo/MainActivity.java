@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     public boolean isSwipeBackDragging = false;
     private boolean isStartingActivity = false;
     private WatchHaptics haptics;
+    private LiuyaoCastingController liuyaoCastingController;
 
     WatchGestureDetector gestureDetector;
     WatchCrownHandler crownHandler;
@@ -60,15 +61,8 @@ public class MainActivity extends Activity {
     public int currentCastYaoValue = 0;
     public long taijiTransitionStartTime = 0L;
     public boolean liuyaoScrollIsClockwise = true;
-    int coinAnimFrame = 0;
-    // 六爻滚动特效限制为 15fps；按时间补偿旋转角度，保持与原先相同的视觉转速。
-    private static final long LIUYAO_ANIMATION_FRAME_DELAY_MS = 66L;
-    private static final float LIUYAO_ROTATION_DEGREES_PER_SECOND = 360f;
-    long liuyaoVibrateStartTime = 0L;
-    long liuyaoLastScrollTime = 0L;
     public float[] liuyaoRingAngles = new float[6];
     public int[] liuyaoRingDirections = new int[6];
-    private Runnable pendingCommitRunnable = null;
 
     // 六爻解卦状态
     int selectedHexagramLineIndex = 0;
@@ -141,6 +135,7 @@ public class MainActivity extends Activity {
         appStartTime = System.currentTimeMillis(); // 记录打开程序的时间
 
         haptics = new WatchHaptics(this);
+        liuyaoCastingController = new LiuyaoCastingController(this);
         
         density = getResources().getDisplayMetrics().density;
 
@@ -248,21 +243,7 @@ public class MainActivity extends Activity {
             liuyaoResultShowChanged = false;
         }
         if (newState == ScreenState.LIUYAO_DRAW) {
-            liuyaoRollCount = 0;
-            isCoinsRolling = false;
-            isShowingCoinResult = false;
-            java.util.Arrays.fill(currentCoinResults, false);
-            currentCastYaoValue = 0;
-            taijiTransitionStartTime = 0L;
-            liuyaoScrollIsClockwise = true;
-            liuyaoRingAngles = new float[6];
-            liuyaoRingDirections = new int[6];
-            java.util.Arrays.fill(liuyaoRingDirections, 1);
-            if (pendingCommitRunnable != null && mSafeContainer != null) {
-                mSafeContainer.removeCallbacks(pendingCommitRunnable);
-                pendingCommitRunnable = null;
-            }
-            java.util.Arrays.fill(liuyaoLineResults, 0);
+            liuyaoCastingController.reset();
         }
         renderScreen();
     }
@@ -521,170 +502,11 @@ public class MainActivity extends Activity {
     }
 
     public void handleLiuyaoScrollStep(boolean isClockwise) {
-        if (liuyaoRollCount >= 6 || isShowingCoinResult) return;
-        
-        liuyaoScrollIsClockwise = isClockwise;
-        long now = System.currentTimeMillis();
-        liuyaoLastScrollTime = now;
-        
-        vibrateCustom(android.os.VibrationEffect.EFFECT_TICK);
-        
-        if (pendingCommitRunnable != null) {
-            mSafeContainer.removeCallbacks(pendingCommitRunnable);
-            pendingCommitRunnable = null;
-        }
-        
-        if (liuyaoRollCount < 6) {
-            liuyaoRingDirections[liuyaoRollCount] = isClockwise ? 1 : -1;
-        }
-        
-        if (!isCoinsRolling) {
-            isCoinsRolling = true;
-            liuyaoVibrateStartTime = now;
-            if (liuyaoRollCount == 0) {
-                taijiTransitionStartTime = now;
-            }
-            
-            final Runnable animRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (isCoinsRolling) {
-                        coinAnimFrame++;
-                        float step = LIUYAO_ROTATION_DEGREES_PER_SECOND
-                                * LIUYAO_ANIMATION_FRAME_DELAY_MS / 1000f;
-                        if (liuyaoScrollIsClockwise) {
-                            step = -step;
-                        }
-                        for (int k = 0; k < 6; k++) {
-                            if (k < liuyaoRollCount) {
-                                liuyaoRingAngles[k] += liuyaoRingDirections[k] * step;
-                            } else {
-                                liuyaoRingAngles[k] += step;
-                            }
-                        }
-                        View child = getActiveScreenView();
-                        if (child instanceof LiuyaoDrawScreenView) {
-                            ((LiuyaoDrawScreenView) child).updateText();
-                        }
-                        mSafeContainer.postDelayed(this, LIUYAO_ANIMATION_FRAME_DELAY_MS);
-                    }
-                }
-            };
-            mSafeContainer.post(animRunnable);
-            
-            final Runnable stopCheckRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (isCoinsRolling) {
-                        final long current = System.currentTimeMillis();
-                        if (current - liuyaoLastScrollTime >= 350) {
-                            isCoinsRolling = false;
-                            
-                            // 停止滚动，将所有圈层角度对齐到 120 度的倍数，并规范到 [0, 360) 范围内，确保静止时完美对齐
-                            for (int k = 0; k < 6; k++) {
-                                float rounded = Math.round(liuyaoRingAngles[k] / 120f) * 120f;
-                                rounded = ((rounded % 360f) + 360f) % 360f;
-                                liuyaoRingAngles[k] = rounded;
-                            }
-                            
-                            // 立即生成本次抛币的 3 个硬币随机结果
-                            int seed = (int)(liuyaoVibrateStartTime ^ current);
-                            SFC32 rng = new SFC32(seed);
-                            currentCoinResults[0] = (rng.next() < 0.5f);
-                            currentCoinResults[1] = (rng.next() < 0.5f);
-                            currentCoinResults[2] = (rng.next() < 0.5f);
-                            
-                            int sum = 0;
-                            for (int i = 0; i < 3; i++) {
-                                sum += currentCoinResults[i] ? 3 : 2;
-                            }
-                            currentCastYaoValue = sum;
-                            isShowingCoinResult = true;
-
-                            // 立即刷新画面使旋转停止，并冻结展示本轮 of 3 coins (0ms)
-                            View child = getActiveScreenView();
-                            if (child instanceof LiuyaoDrawScreenView) {
-                                ((LiuyaoDrawScreenView) child).updateText();
-                            }
-                            
-                            // 延时 1.5 秒 (1-2s内) 维持显示当前投币结果，随后合并变换为最终的爻线并 commit
-                            pendingCommitRunnable = new Runnable() {
-                                @Override
-                                public void run() {
-                                    commitLiuyaoYao();
-                                    pendingCommitRunnable = null;
-                                }
-                            };
-                            mSafeContainer.postDelayed(pendingCommitRunnable, 1500);
-                        } else {
-                            mSafeContainer.postDelayed(this, LIUYAO_ANIMATION_FRAME_DELAY_MS);
-                        }
-                    }
-                }
-            };
-            mSafeContainer.postDelayed(stopCheckRunnable, 100);
-        }
-    }
-
-    private void commitLiuyaoYao() {
-        isShowingCoinResult = false;
-        liuyaoLineResults[liuyaoRollCount] = currentCastYaoValue;
-        liuyaoRollCount++;
-        
-        vibrateCustom(android.os.VibrationEffect.EFFECT_CLICK);
-        
-        View child = getActiveScreenView();
-        if (child instanceof LiuyaoDrawScreenView) {
-            ((LiuyaoDrawScreenView) child).updateText();
-        }
-        
-        if (liuyaoRollCount == 6) {
-            mSafeContainer.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (currentScreen == ScreenState.LIUYAO_DRAW) {
-                        selectedHexagramLineIndex = 0;
-                        addLiuyaoHistory();
-                        currentScreen = ScreenState.LIUYAO_RESULT;
-                        renderScreen();
-                    }
-                }
-            }, 1200);
-        }
-    }
-
-    public static class SFC32 {
-        private int a, b, c, d;
-
-        public SFC32(int seed) {
-            a = 0x9E3779B9;
-            b = 0x243F6A88;
-            c = 0xB7E15162;
-            d = seed == 0 ? 12345 : Math.abs(seed);
-            for (int i = 0; i < 12; i++) {
-                next();
-            }
-        }
-
-        public float next() {
-            int t = a + b;
-            a = b ^ (b >>> 9);
-            b = c + (c << 3);
-            c = (c << 21) | (c >>> 11);
-            d = d + 1;
-            t = t + d;
-            c = c + t;
-            return (float) ((t & 0xFFFFFFFFL) / 4294967296.0);
-        }
+        liuyaoCastingController.onScrollStep(isClockwise);
     }
 
     public static int generateSingleYao(int seed) {
-        SFC32 rng = new SFC32(seed);
-        int sum = 0;
-        for (int i = 0; i < 3; i++) {
-            sum += (rng.next() < 0.5f) ? 3 : 2;
-        }
-        return sum; // 6, 7, 8, 9
+        return LiuyaoCastingController.generateSingleYao(seed);
     }
 
     String getLiuyaoResultText(int lineIndex) {
@@ -759,6 +581,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (liuyaoCastingController != null) liuyaoCastingController.release();
         if (historyManager != null) historyManager.close();
         if (haptics != null) haptics.release();
         super.onDestroy();
