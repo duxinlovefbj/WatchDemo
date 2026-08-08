@@ -1,11 +1,9 @@
 package com.example.watchdemo;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,20 +28,7 @@ public class MainActivity extends Activity {
     ScreenState currentScreen = ScreenState.INIT;
     public boolean isSwipeBackDragging = false;
     private boolean isStartingActivity = false;
-    Vibrator vibrator;
-    private android.os.HandlerThread vibrateThread;
-    private android.os.Handler vibrateHandler;
-    private final VibrateRunnable vibrateRunnable = new VibrateRunnable();
-    
-    // 线性马达反射缓存
-    private Object mLinearMotorService = null;
-    private java.lang.reflect.Method mLMVibrateMethod = null;
-    private java.lang.reflect.Constructor<?> mWaveformBuilderConstructor = null;
-    private java.lang.reflect.Method mSetEffectTypeMethod = null;
-    private java.lang.reflect.Method mSetEffectStrengthMethod = null;
-    private java.lang.reflect.Method mSetEffectLoopMethod = null;
-    private java.lang.reflect.Method mBuildMethod = null;
-    private boolean mIsLinearMotorSupported = false;
+    private WatchHaptics haptics;
 
     WatchGestureDetector gestureDetector;
     WatchCrownHandler crownHandler;
@@ -58,38 +43,6 @@ public class MainActivity extends Activity {
     // 设置状态
     boolean vibrationEnabled = true;
     int settingsSelectedIndex = 0;
-
-    public static class LiuyaoHistoryItem {
-        public long id;
-        public String displayStr;
-        public int[] lineResults;
-        
-        public LiuyaoHistoryItem(long id, String displayStr, int[] lineResults) {
-            this.id = id;
-            this.displayStr = displayStr;
-            this.lineResults = lineResults.clone();
-        }
-    }
-
-    public static class TarotHistoryItem {
-        public long id;
-        public String displayStr;
-        public int targetCount;
-        public int drawnCount;
-        public int[] drawnIndices;
-        public boolean[] cardStates;
-        public int arraySelectedIndex;
-        
-        public TarotHistoryItem(long id, String displayStr, int targetCount, int drawnCount, int[] drawnIndices, boolean[] cardStates, int arraySelectedIndex) {
-            this.id = id;
-            this.displayStr = displayStr;
-            this.targetCount = targetCount;
-            this.drawnCount = drawnCount;
-            this.drawnIndices = drawnIndices.clone();
-            this.cardStates = cardStates.clone();
-            this.arraySelectedIndex = arraySelectedIndex;
-        }
-    }
 
     // 历史记录状态
     int historyTabIndex = 0; // 0 = 六爻, 1 = 塔罗
@@ -188,12 +141,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         appStartTime = System.currentTimeMillis(); // 记录打开程序的时间
 
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        initLinearMotorReflection();
-        vibrateThread = new android.os.HandlerThread("crown_vibrate");
-        vibrateThread.start();
-        vibrateHandler = new android.os.Handler(vibrateThread.getLooper());
+        haptics = new WatchHaptics(this);
         
         density = getResources().getDisplayMetrics().density;
 
@@ -278,13 +226,7 @@ public class MainActivity extends Activity {
     }
 
     void vibrateCustom(final int effectId) {
-        if (!vibrationEnabled) return;
-        if (vibrateHandler != null) {
-            // 防抖去重：先移除队列中未执行的相同 Runnable，防止震动请求因高频操作而挤压阻塞
-            vibrateHandler.removeCallbacks(vibrateRunnable);
-            vibrateRunnable.setEffectId(effectId);
-            vibrateHandler.post(vibrateRunnable);
-        }
+        if (vibrationEnabled && haptics != null) haptics.vibrate(effectId);
     }
 
     void switchScreen(ScreenState newState) {
@@ -760,28 +702,6 @@ public class MainActivity extends Activity {
         return title + info;
     }
 
-    private void initLinearMotorReflection() {
-        try {
-            mLinearMotorService = getSystemService("linearmotor");
-            if (mLinearMotorService != null) {
-                Class<?> vibratorClass = Class.forName("android.os.linearmotorvibrator.LinearmotorVibrator");
-                Class<?> waveformEffectClass = Class.forName("android.os.linearmotorvibrator.WaveformEffect");
-                Class<?> builderClass = Class.forName("android.os.linearmotorvibrator.WaveformEffect$Builder");
-                
-                mLMVibrateMethod = vibratorClass.getMethod("vibrate", waveformEffectClass);
-                mWaveformBuilderConstructor = builderClass.getConstructor();
-                mSetEffectTypeMethod = builderClass.getMethod("setEffectType", int.class);
-                mSetEffectStrengthMethod = builderClass.getMethod("setEffectStrength", int.class);
-                mSetEffectLoopMethod = builderClass.getMethod("setEffectLoop", boolean.class);
-                mBuildMethod = builderClass.getMethod("build");
-                mIsLinearMotorSupported = true;
-            }
-        } catch (Exception e) {
-            android.util.Log.e("MainActivity", "Failed to initialize LinearmotorVibrator reflection", e);
-            mIsLinearMotorSupported = false;
-        }
-    }
-
     public void saveHistory() {
         try {
             android.content.SharedPreferences prefs = getSharedPreferences("watch_demo_prefs", MODE_PRIVATE);
@@ -1080,51 +1000,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (vibrateThread != null) {
-            vibrateThread.quitSafely();
-        }
+        if (haptics != null) haptics.release();
         super.onDestroy();
-    }
-
-    private class VibrateRunnable implements Runnable {
-        private int effectId;
-
-        public void setEffectId(int effectId) {
-            this.effectId = effectId;
-        }
-
-        @Override
-        public void run() {
-            if (mIsLinearMotorSupported && mLinearMotorService != null) {
-                try {
-                    int targetEffectId = effectId;
-                    if (effectId == android.os.VibrationEffect.EFFECT_TICK) {
-                        targetEffectId = 302; // OPPO Watch X2 crisp crown detent tick effect ID
-                    }
-                    Object builderObj = mWaveformBuilderConstructor.newInstance();
-                    mSetEffectTypeMethod.invoke(builderObj, targetEffectId);
-                    mSetEffectStrengthMethod.invoke(builderObj, 2); // strength = 2
-                    mSetEffectLoopMethod.invoke(builderObj, false); // loop = false
-                    Object effectObj = mBuildMethod.invoke(builderObj);
-                    
-                    mLMVibrateMethod.invoke(mLinearMotorService, effectObj);
-                    return; // Success
-                } catch (Exception e) {
-                    android.util.Log.e("MainActivity", "Linearmotor vibration failed, falling back to standard vibrator", e);
-                }
-            }
-
-            if (vibrator != null && vibrator.hasVibrator()) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                    vibrator.vibrate(VibrationEffect.createPredefined(effectId));
-                } else {
-                    if (effectId == VibrationEffect.EFFECT_TICK) {
-                        vibrator.vibrate(10);
-                    } else {
-                        vibrator.vibrate(50);
-                    }
-                }
-            }
-        }
     }
 }

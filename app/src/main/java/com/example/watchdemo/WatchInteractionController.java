@@ -66,7 +66,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
             activity.vibrateCustom(VibrationEffect.EFFECT_CLICK);
             if (activity.historyTabIndex == 0) {
                 if (!activity.liuyaoHistoryList.isEmpty() && activity.historySelectedIndex < activity.liuyaoHistoryList.size()) {
-                    MainActivity.LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(activity.historySelectedIndex);
+                    LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(activity.historySelectedIndex);
                     activity.liuyaoLineResults = item.lineResults.clone();
                     activity.selectedHexagramLineIndex = 0;
                     activity.currentScreen = MainActivity.ScreenState.LIUYAO_RESULT;
@@ -77,7 +77,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
                 }
             } else {
                 if (!activity.tarotHistoryList.isEmpty() && activity.historySelectedIndex < activity.tarotHistoryList.size()) {
-                    MainActivity.TarotHistoryItem item = activity.tarotHistoryList.get(activity.historySelectedIndex);
+                    TarotHistoryItem item = activity.tarotHistoryList.get(activity.historySelectedIndex);
                     activity.tarotArraySelectedIndex = item.arraySelectedIndex;
                     activity.tarotTargetCount = item.targetCount;
                     activity.tarotDrawnCount = item.drawnCount;

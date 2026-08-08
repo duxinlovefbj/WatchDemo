@@ -332,13 +332,13 @@ public class HistoryScreenView extends FrameLayout {
                     activity.vibrateCustom(android.os.VibrationEffect.EFFECT_CLICK);
                     if (activity.historyTabIndex == 0) {
                         if (index < activity.liuyaoHistoryList.size()) {
-                            MainActivity.LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(index);
+                            LiuyaoHistoryItem item = activity.liuyaoHistoryList.get(index);
                             activity.deleteLiuyaoHistory(item.id);
                             activity.liuyaoHistoryList.remove(index);
                         }
                     } else {
                         if (index < activity.tarotHistoryList.size()) {
-                            MainActivity.TarotHistoryItem item = activity.tarotHistoryList.get(index);
+                            TarotHistoryItem item = activity.tarotHistoryList.get(index);
                             activity.deleteTarotHistory(item.id);
                             activity.tarotHistoryList.remove(index);
                         }
