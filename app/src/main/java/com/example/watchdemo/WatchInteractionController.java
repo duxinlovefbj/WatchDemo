@@ -92,40 +92,7 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
             }
             activity.renderScreen();
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT) {
-            if (activity.tarotArraySelectedIndex == 0) activity.tarotTargetCount = -1; // 自由抽牌
-            else if (activity.tarotArraySelectedIndex == 1) activity.tarotTargetCount = 3;  // 圣三角
-            else if (activity.tarotArraySelectedIndex == 2) activity.tarotTargetCount = 7;  // 六芒星
-            else if (activity.tarotArraySelectedIndex == 3) activity.tarotTargetCount = 5;  // 时间之箭
-            else if (activity.tarotArraySelectedIndex == 4) activity.tarotTargetCount = 10; // 凯尔特十字
-            else if (activity.tarotArraySelectedIndex == 5) activity.tarotTargetCount = 4;  // 四元素
-            else if (activity.tarotArraySelectedIndex == 6) activity.tarotTargetCount = 5;  // 二选一
-            else if (activity.tarotArraySelectedIndex == 7) activity.tarotTargetCount = 9;  // 金字塔
-            else if (activity.tarotArraySelectedIndex == 8) activity.tarotTargetCount = 7;  // 七脉轮
-            else if (activity.tarotArraySelectedIndex == 9) activity.tarotTargetCount = 4;  // 直击问题
-            else if (activity.tarotArraySelectedIndex == 10) activity.tarotTargetCount = 7; // 指引之星
-            else if (activity.tarotArraySelectedIndex == 11) activity.tarotTargetCount = 5; // 财务
-            else activity.tarotTargetCount = 6; // 人际关系
-            
-            activity.availableTarotCards.clear();
-            for (int i = 0; i < 78; i++) {
-                activity.availableTarotCards.add(i);
-            }
-            // 使用打开程序时间 (appStartTime) 作为种子洗牌
-            java.util.Random shuffleRand = new java.util.Random(activity.appStartTime);
-            java.util.Collections.shuffle(activity.availableTarotCards, shuffleRand);
-            
-            activity.tarotDrawnCount = 0;
-            activity.tarotSelectedCardIndex = 39;
-            int allocSize = activity.tarotTargetCount > 0 ? activity.tarotTargetCount : 78;
-            activity.tarotDrawnIndices = new int[allocSize];
-            activity.tarotCardStates = new boolean[allocSize];
-
-            // 记录进入抽牌界面的时间作为种子，用于在抽牌时随机判定逆位
-            activity.tarotDrawEnterTime = System.currentTimeMillis();
-            activity.tarotDrawRandom = new java.util.Random(activity.tarotDrawEnterTime);
-            
-            activity.isTarotFastSlideUnlocked = false;
-            activity.switchScreen(MainActivity.ScreenState.TAROT_DRAW);
+            activity.startTarotDrawSession();
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_DRAW) {
             View child = activity.getActiveScreenView();
             if (child instanceof TarotDrawScreenView) {

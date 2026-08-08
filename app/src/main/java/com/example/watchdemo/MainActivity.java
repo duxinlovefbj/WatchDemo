@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
     private boolean isStartingActivity = false;
     private WatchHaptics haptics;
     private LiuyaoCastingController liuyaoCastingController;
+    private TarotDrawController tarotDrawController;
 
     WatchGestureDetector gestureDetector;
     WatchCrownHandler crownHandler;
@@ -86,48 +87,10 @@ public class MainActivity extends Activity {
 
     // 随机化种子与变量
     public long appStartTime = 0L;
-    public long tarotDrawEnterTime = 0L;
-    public java.util.Random tarotDrawRandom = null;
-
     // 塔罗结果状态
     int tarotResultLayer = 1; // 1 = 牌阵全景, 2 = 单牌详情
     int tarotResultDetailIndex = 0;
     boolean tarotResultJustEnteredLayer2 = false;
-
-    // 动画状态
-    int lastDrawnCardId = -1;
-    long lastDrawnTime = 0;
-
-    static final String[] TAROT_CARDS = {
-        "愚人", "魔术师", "女祭司", "女皇", "皇帝", "教皇", "恋人", "战车",
-        "力量", "隐士", "命运之轮", "正义", "倒吊人", "死神", "节制", "恶魔",
-        "高塔", "星星", "月亮", "太阳", "审判", "世界"
-    };
-
-    static final String[] TAROT_MEANINGS = {
-        "【释义】正位代表新的起点、自由、冒险与无限可能性。逆位提示盲目粗心、逃避现实、受挫或决策错误。",
-        "【释义】正位代表创造力、专注力、主动性与坚强的意志力。逆位提示缺乏规划、意志消沉、欺骗或才能受阻。",
-        "【释义】正位代表直觉、深层潜意识、智慧与静止思考。逆位提示情绪波动、忽视直觉、过于冷漠或肤浅。",
-        "【释义】正位代表丰收、自然、母亲、丰饶与物质享受。逆位提示过度控制、缺乏成长、创造力受阻或感情危机。",
-        "【释义】正位代表权力、控制、父亲、纪律与秩序。逆位提示专制暴政、控制欲过强、软弱或缺乏行动力。",
-        "【释义】正位代表传统、精神指引、体制、信仰与社会规范。逆位提示打破陈规、盲目顺从、叛逆或信仰动摇。",
-        "【释义】正位代表选择、结合、和谐的感情关系。逆位提示关系不协调、分离、面临艰难抉择或沟通不畅。",
-        "【释义】正位代表坚强意志、胜利、掌控与勇往直前。逆位提示失控、方向错误、受挫退缩或过度好斗。",
-        "【释义】正位代表勇气、内在力量、耐心与坚韧自控.逆位提示自我怀疑、软弱、丧失自信或滥用暴力。",
-        "【释义】正位代表自我反省、孤独、精神引导与追寻真理.逆位提示过度孤立、顽固不化、逃避社交或感到迷茫。",
-        "【释义】正位代表命运转变、重大机遇、好运与新循环开始。逆位提示坏运气、抗拒变化、时运不济或自动卷入恶性循环。",
-        "【释义】正位代表公正、真理、道德责任与生活平衡。逆位提示失衡、不公、偏见或面临法律纠纷、推卸责任。",
-        "【释义】正位代表奉献牺牲、换位思考、暂停行动与静候时机。逆位提示无谓挣扎、抗拒牺牲、停滞不前或错失时机。",
-        "【释义】正位代表旧事物终结、深刻转变、告别过去与新生。逆位提示抗拒改变、停滞不前、恐惧死亡或沉溺过去。",
-        "【释义】正位代表适度平衡、和谐节制、顺畅沟通与身心净化。逆位提示失衡、不和谐、缺乏沟通或过度消耗。",
-        "【释义】正位代表强烈欲望、物质束缚、诱惑与沉溺。逆位提示摆脱束缚、精神觉醒、直面阴暗面或不再堕落。",
-        "【释义】正位代表剧烈变革、灾难性崩塌、打破幻想与灵魂觉醒。逆位提示危机渐去、害怕改变、面临小警告或侥幸逃脱。",
-        "【释义】正位代表希望、灵感、宁静、新生与未来期许。逆位提示缺乏灵感、感到失望、悲观主义或自我怀疑。",
-        "【释义】正位代表幻觉、不安恐惧、潜意识梦境与未知迷茫。逆位提示解开束缚、驱散迷雾、真相大白。",
-        "【释义】正位代表活力四射、大获成功、无比快乐与光明前程。逆位提示虚幻成功、缺乏活力、骄傲自满或遭遇小阻碍。",
-        "【释义】正位代表专一觉醒、审判、决定、救赎与因果召示。逆位提示拖延决断、拒绝觉醒、悔恨过去或逃避责任。",
-        "【释义】正位代表圆满成功、旅程终点、全球视野与完美契合。逆位提示未完成的目标、受阻停滞或抗拒结束旧篇章。"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +99,7 @@ public class MainActivity extends Activity {
 
         haptics = new WatchHaptics(this);
         liuyaoCastingController = new LiuyaoCastingController(this);
+        tarotDrawController = new TarotDrawController(this);
         
         density = getResources().getDisplayMetrics().density;
 
@@ -458,47 +422,11 @@ public class MainActivity extends Activity {
     }
 
     public void executeDrawCardAction(boolean fillFromLeft) {
-        int maxCount = tarotTargetCount > 0 ? tarotTargetCount : 78;
-        if (tarotDrawnCount < maxCount && availableTarotCards.size() > 0) {
-            int drawnCardId = availableTarotCards.remove(tarotSelectedCardIndex);
-            tarotDrawnIndices[tarotDrawnCount] = drawnCardId;
-            if (tarotDrawRandom != null) {
-                tarotCardStates[tarotDrawnCount] = tarotDrawRandom.nextBoolean(); // 用进入抽牌界面的时间戳种子来随机判定逆位
-            } else {
-                tarotCardStates[tarotDrawnCount] = Math.random() > 0.5;
-            }
-            tarotDrawnCount++;
-            vibrateCustom(VibrationEffect.EFFECT_CLICK);
-            
-            lastDrawnCardId = drawnCardId;
-            lastDrawnTime = System.currentTimeMillis();
-            
-            if (availableTarotCards.size() > 0) {
-                if (fillFromLeft) {
-                    // 左侧向中线补位，相当于选中索引在剩余的牌库中向左移一位
-                    tarotSelectedCardIndex = (tarotSelectedCardIndex - 1 + availableTarotCards.size()) % availableTarotCards.size();
-                } else {
-                    // 右侧向中线补位，后续的牌左移，由于移除了当前牌，新的选中索引依然是原位置（若越界则取最大值）
-                    tarotSelectedCardIndex = Math.min(tarotSelectedCardIndex, availableTarotCards.size() - 1);
-                }
-            }
-            
-            renderScreen();
-            
-            if (tarotTargetCount > 0 && tarotDrawnCount == tarotTargetCount) {
-                mSafeContainer.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (currentScreen == ScreenState.TAROT_DRAW) {
-                            tarotResultLayer = 1;
-                            tarotResultDetailIndex = 0;
-                            addTarotHistory();
-                            switchScreen(MainActivity.ScreenState.TAROT_RESULT);
-                        }
-                    }
-                }, 300);
-            }
-        }
+        tarotDrawController.drawSelectedCard(fillFromLeft);
+    }
+
+    void startTarotDrawSession() {
+        tarotDrawController.startSession();
     }
 
     public void handleLiuyaoScrollStep(boolean isClockwise) {
@@ -553,8 +481,8 @@ public class MainActivity extends Activity {
 
     public void addTarotHistory() {
         int firstCardId = tarotDrawnCount > 0 ? tarotDrawnIndices[0] : -1;
-        String cardName = firstCardId >= 0 && firstCardId < TAROT_CARDS.length
-                ? TAROT_CARDS[firstCardId] : "塔罗牌";
+        String cardName = firstCardId >= 0 && firstCardId < 22
+                ? TarotDeck.TAROT_DECK[firstCardId].name : "塔罗牌";
         historyManager.addTarot(tarotArraySelectedIndex, tarotTargetCount, tarotDrawnCount,
                 tarotDrawnIndices, tarotCardStates, cardName,
                 item -> runOnUiThread(() -> {
@@ -581,6 +509,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (tarotDrawController != null) tarotDrawController.release();
         if (liuyaoCastingController != null) liuyaoCastingController.release();
         if (historyManager != null) historyManager.close();
         if (haptics != null) haptics.release();
