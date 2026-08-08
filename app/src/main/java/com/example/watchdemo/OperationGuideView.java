@@ -56,8 +56,8 @@ public class OperationGuideView extends FrameLayout {
         TextView body = text(
                 "左侧进入六爻，右侧进入塔罗\n" +
                 "上滑设置，下滑历史\n" +
-                "六爻可旋转表冠\n" +
-                "也可上下滑动抽取",
+                "表冠旋转、上下滑动抽取六爻\n" +
+                "长按切换塔罗滑动选牌功能",
                 12.0f, "#E8E8E8", false);
         body.setGravity(Gravity.CENTER);
         body.setLineSpacing(dp(2), 1.0f);
