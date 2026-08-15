@@ -178,7 +178,7 @@ public class TarotDrawScreenView extends FrameLayout {
             }
         }
         if (tvTip != null) {
-            String stateTip = isFastSlideUnlocked ? "长按锁定" : "长按解锁";
+            String stateTip = isFastSlideUnlocked ? "长按解锁" : "长按锁定";
             tvTip.setText(stateTip + " · 上滑抽牌");
         }
     }

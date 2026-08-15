@@ -200,6 +200,10 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
                 activity.liuyaoResultSubPage = 0; // 从卦象盘返回主页
                 activity.vibrateCustom(VibrationEffect.EFFECT_TICK);
                 activity.renderScreen();
+            } else if (activity.liuyaoResultSubPage == 2) {
+                activity.liuyaoResultSubPage = 0; // 从爻辞返回主页
+                activity.vibrateCustom(VibrationEffect.EFFECT_TICK);
+                activity.renderScreen();
             }
         } else if (activity.currentScreen == MainActivity.ScreenState.TAROT_ARRAY_SELECT) {
             // 已改为 ScrollView 滚动列表，由 ScrollView 处理上下滑动
@@ -231,7 +235,9 @@ public class WatchInteractionController implements WatchGestureDetector.GestureL
                 activity.vibrateCustom(VibrationEffect.EFFECT_TICK);
                 activity.renderScreen();
             } else if (activity.liuyaoResultSubPage == 2) {
-                activity.liuyaoResultSubPage = 0; // 从爻辞返回主页
+                // 无表冠设备通过下滑按画面从上到下浏览，到初爻后循环回上爻。
+                activity.selectedHexagramLineIndex =
+                        (activity.selectedHexagramLineIndex + 5) % 6;
                 activity.vibrateCustom(VibrationEffect.EFFECT_TICK);
                 activity.renderScreen();
             }
